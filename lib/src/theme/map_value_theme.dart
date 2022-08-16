@@ -6,15 +6,15 @@ import 'map_theme.dart';
 
 /// Theme for colors by value.
 class MapValueTheme extends MapTheme {
-  MapValueTheme(
-      {Color? color,
-      Color? contourColor,
-      LabelVisibility? labelVisibility,
-      LabelStyleBuilder? labelStyleBuilder,
-      MarkerBuilder? markerBuilder,
-      required this.key,
-      Map<dynamic, Color>? colors})
-      : _colors = colors,
+  MapValueTheme({
+    Color? color,
+    Color? contourColor,
+    LabelVisibility? labelVisibility,
+    LabelStyleBuilder? labelStyleBuilder,
+    MarkerBuilder? markerBuilder,
+    required this.key,
+    Map<dynamic, Color>? colors,
+  })  : _colors = colors,
         super(
             color: color,
             contourColor: contourColor,

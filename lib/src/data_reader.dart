@@ -1,46 +1,100 @@
+// ignore_for_file: constant_identifier_names
+
 import 'dart:convert';
 
 import 'data/geometries.dart';
 import 'data/map_feature.dart';
 import 'error.dart';
 
+enum GeometryType {
+  Point,
+  MultiPoint,
+  LineString,
+  MultiLineString,
+  Polygon,
+  MultiPolygon,
+  Other;
+
+  @override
+  String toString() => name;
+}
+
+enum MapType {
+  FeatureCollection,
+  GeometryCollection,
+  Feature,
+
+  Other;
+
+  @override
+  String toString() => name;
+}
+
+class Keys {
+  static const String TYPE = "type";
+  static const String COORDINATES = "coordinates";
+  static const String FEATURES = "features";
+  static const String GEOMETRY = "geometry";
+  static const String PROPERTIES = "properties";
+}
+
 /// Generic GeoJSON reader.
 class _GeoJsonReaderBase {
-  void _checkKeyOn(Map<String, dynamic> map, String key) {
+  void _checkKeyOn(Map<String, dynamic> map, {required String key}) {
     if (map.containsKey(key) == false) {
       throw VectorMapError.keyNotFound(key);
     }
   }
 
-  MapGeometry _readGeometry(bool hasParent, Map<String, dynamic> map) {
-    _checkKeyOn(map, 'type');
-    final type = map['type'];
+  GeometryType _generateGeometryType(Map<String, dynamic> map) {
+    final type = GeometryType.values.firstWhere(
+      (e) => e.name == (map[Keys.TYPE] as String? ?? GeometryType.Other.name),
+    );
+    return type;
+  }
+
+  MapType _generateMapType(Map<String, dynamic> map) {
+    final type = MapType.values.firstWhere(
+      (e) => e.name == (map[Keys.TYPE] as String? ?? MapType.Other.name),
+    );
+
+    return type;
+  }
+
+  MapGeometry _readGeometry(
+    Map<String, dynamic> map, {
+    bool hasParent = false,
+  }) {
+    _checkKeyOn(map, key: Keys.TYPE);
+
+    final type = _generateGeometryType(map);
+
     switch (type) {
       //TODO other geometries
-      case 'Point':
+      case GeometryType.Point:
         return _readPoint(map);
-      case 'MultiPoint':
+      case GeometryType.MultiPoint:
         throw UnimplementedError();
-      case 'LineString':
+      case GeometryType.LineString:
         return _readLineString(map);
-      case 'MultiLineString':
+      case GeometryType.MultiLineString:
         return _readMultiLineString(map);
-      case 'Polygon':
+      case GeometryType.Polygon:
         return _readPolygon(map);
-      case 'MultiPolygon':
+      case GeometryType.MultiPolygon:
         return _readMultiPolygon(map);
       default:
         if (hasParent) {
-          throw VectorMapError.invalidGeometryType(type);
+          throw VectorMapError.invalidGeometryType(type.name);
         } else {
-          throw VectorMapError.invalidType(type);
+          throw VectorMapError.invalidType(type.name);
         }
     }
   }
 
   MapGeometry _readPoint(Map<String, dynamic> map) {
-    _checkKeyOn(map, 'coordinates');
-    List coordinates = map['coordinates'];
+    _checkKeyOn(map, key: Keys.COORDINATES);
+    List coordinates = map[Keys.COORDINATES];
     if (coordinates.length == 2) {
       double x = _toDouble(coordinates[0]);
       double y = _toDouble(coordinates[1]);
@@ -52,8 +106,8 @@ class _GeoJsonReaderBase {
   }
 
   MapGeometry _readLineString(Map<String, dynamic> map) {
-    _checkKeyOn(map, 'coordinates');
-    List coordinates = map['coordinates'];
+    _checkKeyOn(map, key: Keys.COORDINATES);
+    List coordinates = map[Keys.COORDINATES];
     List<MapPoint> points = [];
     for (List xy in coordinates) {
       double x = _toDouble(xy[0]);
@@ -64,8 +118,8 @@ class _GeoJsonReaderBase {
   }
 
   MapGeometry _readMultiLineString(Map<String, dynamic> map) {
-    _checkKeyOn(map, 'coordinates');
-    List coordinates = map['coordinates'];
+    _checkKeyOn(map, key: Keys.COORDINATES);
+    List coordinates = map[Keys.COORDINATES];
     List<MapLineString> lineString = [];
     for (List coords in coordinates) {
       List<MapPoint> points = [];
@@ -83,8 +137,8 @@ class _GeoJsonReaderBase {
     late MapLinearRing externalRing;
     List<MapLinearRing> internalRings = [];
 
-    _checkKeyOn(map, 'coordinates');
-    List rings = map['coordinates'];
+    _checkKeyOn(map, key: Keys.COORDINATES);
+    List rings = map[Keys.COORDINATES];
     for (int i = 0; i < rings.length; i++) {
       List<MapPoint> points = [];
       List ring = rings[i];
@@ -104,8 +158,8 @@ class _GeoJsonReaderBase {
   }
 
   MapGeometry _readMultiPolygon(Map<String, dynamic> map) {
-    _checkKeyOn(map, 'coordinates');
-    List polygons = map['coordinates'];
+    _checkKeyOn(map, key: Keys.COORDINATES);
+    List polygons = map[Keys.COORDINATES];
 
     List<MapPolygon> mapPolygons = [];
     for (List rings in polygons) {
@@ -162,12 +216,13 @@ class _Properties {
 /// The [parseToNumber] argument defines which properties will have numeric
 /// values in quotes parsed to numbers.
 class MapFeatureReader extends _GeoJsonReaderBase {
-  MapFeatureReader(
-      {this.labelKey,
-      this.keys,
-      this.parseToNumber,
-      this.colorKey,
-      this.colorValueFormat = ColorValueFormat.hex});
+  MapFeatureReader({
+    this.labelKey,
+    this.keys,
+    this.parseToNumber,
+    this.colorKey,
+    this.colorValueFormat = ColorValueFormat.hex,
+  });
 
   final List<MapFeature> _list = [];
 
@@ -184,33 +239,40 @@ class MapFeatureReader extends _GeoJsonReaderBase {
   }
 
   Future<void> _readMap(Map<String, dynamic> map) async {
-    _checkKeyOn(map, 'type');
+    _checkKeyOn(map, key: Keys.TYPE);
 
-    final type = map['type'];
+    final type = _generateMapType(map);
 
-    if (type == 'FeatureCollection') {
-      _checkKeyOn(map, 'features');
-      //TODO check if it is a Map?
-      for (Map<String, dynamic> featureMap in map['features']) {
-        _readFeature(featureMap);
-      }
-    } else if (type == 'GeometryCollection') {
-    } else if (type == 'Feature') {
-      _readFeature(map);
-    } else {
-      MapGeometry geometry = _readGeometry(false, map);
-      _addFeature(geometry: geometry);
+    switch (type) {
+      case MapType.FeatureCollection:
+        _checkKeyOn(map, key: Keys.FEATURES);
+        //TODO check if it is a Map?
+        for (Map<String, dynamic> featureMap in map[Keys.FEATURES]) {
+          _readFeature(featureMap);
+        }
+        break;
+      case MapType.GeometryCollection:
+        //TODO handle geometry collection type
+        break;
+      case MapType.Feature:
+        _readFeature(map);
+        break;
+
+      default:
+        MapGeometry geometry = _readGeometry(map);
+        _addFeature(geometry: geometry);
+        break;
     }
   }
 
   void _readFeature(Map<String, dynamic> map) {
-    _checkKeyOn(map, 'geometry');
-    Map<String, dynamic> geometryMap = map['geometry'];
-    MapGeometry geometry = _readGeometry(true, geometryMap);
+    _checkKeyOn(map, key: Keys.GEOMETRY);
+    Map<String, dynamic> geometryMap = map[Keys.GEOMETRY];
+    MapGeometry geometry = _readGeometry(geometryMap, hasParent: true);
     _Properties? properties;
     if ((labelKey != null || keys != null || colorKey != null) &&
-        map.containsKey('properties')) {
-      Map<String, dynamic> propertiesMap = map['properties'];
+        map.containsKey(Keys.PROPERTIES)) {
+      Map<String, dynamic> propertiesMap = map[Keys.PROPERTIES];
       properties = _readProperties(propertiesMap);
     }
     _addFeature(geometry: geometry, properties: properties);
@@ -246,11 +308,13 @@ class MapFeatureReader extends _GeoJsonReaderBase {
   }
 
   void _addFeature({required MapGeometry geometry, _Properties? properties}) {
-    _list.add(MapFeature(
-        id: _list.length + 1,
-        geometry: geometry,
-        properties: properties?.values,
-        label: properties?.label));
+    _list.add(
+      MapFeature(
+          id: _list.length + 1,
+          geometry: geometry,
+          properties: properties?.values,
+          label: properties?.label),
+    );
   }
 }
 
@@ -265,29 +329,34 @@ class MapGeometryReader extends _GeoJsonReaderBase {
   }
 
   Future<void> _readMap(Map<String, dynamic> map) async {
-    _checkKeyOn(map, 'type');
+    _checkKeyOn(map, key: Keys.TYPE);
 
-    final type = map['type'];
+    final type = _generateMapType(map);
 
-    if (type == 'FeatureCollection') {
-      _checkKeyOn(map, 'features');
-      //TODO check if it is a Map?
-      for (Map<String, dynamic> featureMap in map['features']) {
-        _readFeature(featureMap);
-      }
-    } else if (type == 'GeometryCollection') {
-    } else if (type == 'Feature') {
-      _readFeature(map);
-    } else {
-      MapGeometry geometry = _readGeometry(false, map);
-      _list.add(geometry);
+    switch (type) {
+      case MapType.FeatureCollection:
+        _checkKeyOn(map, key: Keys.FEATURES);
+        for (Map<String, dynamic> featureMap in map[Keys.FEATURES]) {
+          _readFeature(featureMap);
+        }
+        break;
+      case MapType.GeometryCollection:
+        //TODO handle geometry collection type
+        break;
+      case MapType.Feature:
+        _readFeature(map);
+        break;
+      default:
+        MapGeometry geometry = _readGeometry(map);
+        _list.add(geometry);
+        break;
     }
   }
 
   void _readFeature(Map<String, dynamic> map) {
-    _checkKeyOn(map, 'geometry');
-    Map<String, dynamic> geometryMap = map['geometry'];
-    MapGeometry geometry = _readGeometry(true, geometryMap);
+    _checkKeyOn(map, key: Keys.GEOMETRY);
+    Map<String, dynamic> geometryMap = map[Keys.GEOMETRY];
+    MapGeometry geometry = _readGeometry(geometryMap, hasParent: true);
     _list.add(geometry);
   }
 }

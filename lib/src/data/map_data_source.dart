@@ -8,12 +8,12 @@ import 'property_limits.dart';
 
 /// [VectorMap] data source.
 class MapDataSource {
-  MapDataSource._(
-      {required this.features,
-      required this.bounds,
-      required this.pointsCount,
-      Map<String, PropertyLimits>? limits})
-      : _limits = limits;
+  MapDataSource._({
+    required this.features,
+    required this.bounds,
+    required this.pointsCount,
+    Map<String, PropertyLimits>? limits,
+  }) : _limits = limits;
 
   final UnmodifiableMapView<int, MapFeature> features;
   final Rect? bounds;

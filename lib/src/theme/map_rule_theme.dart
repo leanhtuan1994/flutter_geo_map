@@ -10,14 +10,14 @@ import 'map_theme.dart';
 /// a non-null color.
 /// If all rules return a null color, the default color is used.
 class MapRuleTheme extends MapTheme {
-  MapRuleTheme(
-      {Color? color,
-      Color? contourColor,
-      LabelVisibility? labelVisibility,
-      LabelStyleBuilder? labelStyleBuilder,
-      MarkerBuilder? markerBuilder,
-      required List<ColorRule> colorRules})
-      : _colorRules = colorRules,
+  MapRuleTheme({
+    Color? color,
+    Color? contourColor,
+    LabelVisibility? labelVisibility,
+    LabelStyleBuilder? labelStyleBuilder,
+    MarkerBuilder? markerBuilder,
+    required List<ColorRule> colorRules,
+  })  : _colorRules = colorRules,
         super(
             color: color,
             contourColor: contourColor,
@@ -30,6 +30,7 @@ class MapRuleTheme extends MapTheme {
   @override
   bool hasValue() {
     //It is not possible to know in advance, it depends on the rule.
+    //TODO: need handle with rule value
     return true;
   }
 

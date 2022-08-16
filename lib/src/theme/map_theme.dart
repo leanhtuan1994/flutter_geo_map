@@ -39,13 +39,13 @@ class MapTheme {
   }
 
   /// Builds a [VectorMap]
-  MapTheme(
-      {Color? color,
-      this.contourColor,
-      this.labelVisibility,
-      this.labelStyleBuilder,
-      MarkerBuilder? markerBuilder})
-      : _color = color,
+  MapTheme({
+    Color? color,
+    this.contourColor,
+    this.labelVisibility,
+    this.labelStyleBuilder,
+    MarkerBuilder? markerBuilder,
+  })  : _color = color,
         markerBuilder = markerBuilder ?? CircleMakerBuilder.fixed();
 
   final Color? _color;
@@ -60,9 +60,7 @@ class MapTheme {
   }
 
   /// Gets the feature color.
-  Color? getColor(MapDataSource dataSource, MapFeature feature) {
-    return _color;
-  }
+  Color? getColor(MapDataSource dataSource, MapFeature feature) => _color;
 }
 
 /// Defines the visibility of a [MapFeature]

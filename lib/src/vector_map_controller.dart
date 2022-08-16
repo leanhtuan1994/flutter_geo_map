@@ -25,15 +25,15 @@ import 'vector_map_mode.dart';
 class VectorMapController extends ChangeNotifier implements VectorMapApi {
   /// The default [contourThickness] value is 1.
   /// The default [mode] value is [autoFit].
-  VectorMapController(
-      {List<MapLayer>? layers,
-      this.contourThickness = 1,
-      this.delayToRefreshResolution = 1000,
-      VectorMapMode mode = VectorMapMode.autoFit,
-      this.debugger,
-      this.maxScale = 30000,
-      this.minScale = 0.1})
-      : _mode = mode,
+  VectorMapController({
+    List<MapLayer>? layers,
+    this.contourThickness = 1,
+    this.delayToRefreshResolution = 1000,
+    VectorMapMode mode = VectorMapMode.autoFit,
+    this.debugger,
+    this.maxScale = 30000,
+    this.minScale = 0.1,
+  })  : _mode = mode,
         _scale = minScale {
     layers?.forEach(_addLayer);
     _afterLayersChange();
@@ -286,15 +286,23 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     }
   }
 
-  /// Zooms on the given canvas location.
+  /// It takes an offset on the canvas and a boolean, and it zooms in or out on that location
   ///
-  /// Listeners will be notified.
+  /// Args:
+  ///   locationOnCanvas (Offset): The location on the canvas where the zoom should be centered.
+  ///   zoomIn (bool): true if you want to zoom in, false if you want to zoom out
   void zoomOnLocation(Offset locationOnCanvas, bool zoomIn) {
     if (_lastCanvasSize != null) {
       _zoom(_lastCanvasSize!, locationOnCanvas, zoomIn);
     }
   }
 
+  /// > Zoom in or out on the canvas, centered on the given location
+  ///
+  /// Args:
+  ///   canvasSize (Size): The size of the canvas.
+  ///   locationOnCanvas (Offset): The location on the canvas where the user tapped.
+  ///   zoomIn (bool): true if you want to zoom in, false if you want to zoom out
   void _zoom(Size canvasSize, Offset locationOnCanvas, bool zoomIn) {
     _drawBuffers = false;
     _cancelDrawablesUpdate();
