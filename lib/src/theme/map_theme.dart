@@ -10,13 +10,11 @@ class MapTheme {
   static const Color defaultColor = Color(0xFFE0E0E0);
   static const Color defaultContourColor = Color(0xFF9E9E9E);
 
-  static Color getThemeOrDefaultColor(
+  static Color getThemeColor(
       MapDataSource dataSource, MapFeature feature, MapTheme theme) {
     Color? color = theme.getColor(dataSource, feature);
-    if (color != null) {
-      return color;
-    }
-    return MapTheme.defaultColor;
+
+    return color ?? MapTheme.defaultColor;
   }
 
   /// Gets the feature color.
@@ -24,10 +22,8 @@ class MapTheme {
       MapTheme theme, MapHighlightTheme? highlightTheme) {
     Color? color = highlightTheme?.color;
     color ??= theme.getColor(dataSource, feature);
-    if (color != null) {
-      return color;
-    }
-    return MapTheme.defaultColor;
+
+    return color ?? MapTheme.defaultColor;
   }
 
   /// Gets the feature contour color.

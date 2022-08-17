@@ -47,7 +47,7 @@ class GradientLegend extends Legend {
   Widget buildWidget(
       {required BuildContext context,
       required VectorMapApi mapApi,
-      MapFeature? hover}) {
+      MapFeature? highlight}) {
     return _GradientLegendWidget(legend: this, mapApi: mapApi);
   }
 

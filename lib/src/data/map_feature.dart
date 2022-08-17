@@ -4,13 +4,12 @@ import 'geometries.dart';
 
 /// A representation of a real-world object on a map.
 class MapFeature {
-  MapFeature(
-      {required this.id,
-      required this.geometry,
-      Map<String, dynamic>? properties,
-      this.label})
-      : properties =
-            properties != null ? UnmodifiableMapView(properties) : null;
+  MapFeature({
+    required this.id,
+    required this.geometry,
+    Map<String, dynamic>? properties,
+    this.label,
+  }) : properties = properties != null ? UnmodifiableMapView(properties) : null;
 
   final int id;
   final String? label;

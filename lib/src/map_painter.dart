@@ -15,7 +15,8 @@ import 'vector_map_controller.dart';
 
 /// Painter for [VectorMap].
 class MapPainter extends CustomPainter {
-  MapPainter({required this.controller});
+  const MapPainter({required this.controller});
+
   final VectorMapController controller;
 
   @override
@@ -35,15 +36,28 @@ class MapPainter extends CustomPainter {
         } else {
           // resizing, panning or zooming
           canvas.save();
+
           controller.applyMatrixOn(canvas);
-          // drawing contour only to be faster
-          DrawUtils.drawContour(
-              canvas: canvas,
-              chunk: chunk,
-              layer: drawableLayer.layer,
-              contourThickness: controller.contourThickness,
-              scale: controller.scale,
-              antiAlias: false);
+
+          //! drawing contour only to be faster
+          // DrawUtils.drawContour(
+          //   canvas: canvas,
+          //   chunk: chunk,
+          //   layer: drawableLayer.layer,
+          //   contourThickness: controller.contourThickness,
+          //   scale: controller.scale,
+          //   antiAlias: false,
+          // );
+
+          DrawUtils.draw(
+            canvas: canvas,
+            chunk: chunk,
+            layer: drawableLayer.layer,
+            contourThickness: controller.contourThickness,
+            scale: controller.scale,
+            antiAlias: false,
+          );
+
           canvas.restore();
         }
       }
@@ -75,12 +89,13 @@ class MapPainter extends CustomPainter {
             }
           } else {
             DrawUtils.drawHighlight(
-                canvas: canvas,
-                drawableLayer: drawableLayer,
-                paint: paint,
-                scale: controller.scale,
-                fillOnly: true,
-                highlight: highlight);
+              canvas: canvas,
+              drawableLayer: drawableLayer,
+              paint: paint,
+              scale: controller.scale,
+              fillOnly: true,
+              highlight: highlight,
+            );
           }
         }
 
@@ -137,11 +152,22 @@ class MapPainter extends CustomPainter {
                     labelStyleBuilder = highlightTheme.labelStyleBuilder;
                   }
                 }
-                Color featureColor = MapTheme.getFeatureColor(
-                    dataSource, feature, theme, highlightTheme);
+                final featureColor = MapTheme.getFeatureColor(
+                  dataSource,
+                  feature,
+                  theme,
+                  highlightTheme,
+                );
+
                 labelStyleBuilder ??= theme.labelStyleBuilder;
+
                 _drawLabel(
-                    canvas, feature, drawable, featureColor, labelStyleBuilder);
+                  canvas,
+                  feature,
+                  drawable,
+                  featureColor,
+                  labelStyleBuilder,
+                );
               }
             }
           }
@@ -156,7 +182,7 @@ class MapPainter extends CustomPainter {
     Color? color = MapTheme.getContourColor(
         drawableLayer.layer.theme, drawableLayer.layer.highlightTheme);
     if (color != null) {
-      var paint = Paint()
+      final paint = Paint()
         ..style = PaintingStyle.stroke
         ..color = color
         ..strokeWidth = controller.contourThickness / controller.scale
@@ -169,12 +195,13 @@ class MapPainter extends CustomPainter {
         }
       } else {
         DrawUtils.drawHighlight(
-            canvas: canvas,
-            drawableLayer: drawableLayer,
-            paint: paint,
-            scale: controller.scale,
-            fillOnly: false,
-            highlight: highlight!);
+          canvas: canvas,
+          drawableLayer: drawableLayer,
+          paint: paint,
+          scale: controller.scale,
+          fillOnly: false,
+          highlight: highlight!,
+        );
       }
     }
   }
@@ -207,18 +234,16 @@ class MapPainter extends CustomPainter {
 
   void _drawText(
       Canvas canvas, Offset center, String text, TextStyle textStyle) {
-    TextSpan textSpan = TextSpan(
+    final textSpan = TextSpan(
       text: text,
       style: textStyle,
     );
-    TextPainter textPainter = TextPainter(
+    final textPainter = TextPainter(
       text: textSpan,
       textDirection: TextDirection.ltr,
     );
 
-    textPainter.layout(
-      minWidth: 0,
-    );
+    textPainter.layout(minWidth: 0);
 
     double xCenter = center.dx - (textPainter.width / 2);
     double yCenter = center.dy - (textPainter.height / 2);
@@ -226,7 +251,5 @@ class MapPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

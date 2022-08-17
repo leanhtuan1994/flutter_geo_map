@@ -1,9 +1,7 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'addon/map_addon.dart';
 import 'data/map_feature.dart';
-import 'data/map_layer.dart';
 import 'drawable/drawable.dart';
 import 'drawable/drawable_feature.dart';
 import 'drawable/drawable_layer.dart';
@@ -11,6 +9,7 @@ import 'drawable/drawable_layer_chunk.dart';
 import 'low_quality_mode.dart';
 import 'map_highlight.dart';
 import 'map_painter.dart';
+import 'pan_zoom.dart';
 import 'vector_map_controller.dart';
 import 'vector_map_mode.dart';
 
@@ -47,51 +46,19 @@ class VectorMap extends StatefulWidget {
   State<StatefulWidget> createState() => _VectorMapState();
 }
 
-/// Holds the initial mouse location and matrix translate from the pan.
-class _PanZoom {
-  _PanZoom(
-      {required this.initialMouseLocation,
-      required this.initialMapScale,
-      required this.translateX,
-      required this.translateY})
-      : lastLocalPosition = initialMouseLocation;
-
-  final double initialMapScale;
-  final Offset initialMouseLocation;
-  final double translateX;
-  final double translateY;
-  Offset lastLocalPosition;
-  bool _rebuildSimplifiedGeometry = false;
-  bool get rebuildSimplifiedGeometry => _rebuildSimplifiedGeometry;
-
-  double newScale(
-      {required double currentMapScale, required double mouseScale}) {
-    if (mouseScale != 1) {
-      double newScale = initialMapScale * mouseScale;
-      double delta = (1 - (newScale / currentMapScale)).abs();
-      if (delta > 0.05) {
-        _rebuildSimplifiedGeometry = true;
-        return newScale;
-      }
-    }
-    return currentMapScale;
-  }
-}
-
 /// [VectorMap] state.
 class _VectorMapState extends State<VectorMap> {
   late VectorMapController _controller;
 
-  _PanZoom? _panZoom;
+  PanZoom? _panZoom;
+
+  bool get _onPanAndZoom => _panZoom != null;
 
   @override
   void initState() {
     super.initState();
-    if (widget.controller != null) {
-      _controller = widget.controller!;
-    } else {
-      _controller = VectorMapController();
-    }
+
+    _controller = widget.controller ?? VectorMapController();
 
     _controller.addListener(_rebuild);
   }
@@ -113,39 +80,17 @@ class _VectorMapState extends State<VectorMap> {
     super.dispose();
   }
 
-  void _rebuild() {
-    setState(() {
-      // rebuild
-    });
-  }
-
-  bool get _onPanAndZoom => _panZoom != null;
-
   @override
   Widget build(BuildContext context) {
     Widget? content;
     if (_controller.hasLayer) {
-      Widget mapCanvas = _buildMapCanvas();
+      final mapCanvas = _buildMapCanvas();
       if (widget.addons != null) {
-        List<LayoutId> children = [LayoutId(id: 0, child: mapCanvas)];
-        int count = 1;
-        for (MapAddon addon in widget.addons!) {
-          DrawableFeature? hover;
-          if (_controller.highlight != null &&
-              _controller.highlight is MapSingleHighlight) {
-            hover =
-                (_controller.highlight as MapSingleHighlight).drawableFeature;
-          }
-          children.add(LayoutId(
-              id: count,
-              child: addon.buildWidget(
-                  context: context,
-                  mapApi: _controller,
-                  hover: hover?.feature)));
-          count++;
-        }
+        final children = _buildMapWithAddons(map: mapCanvas);
         content = CustomMultiChildLayout(
-            children: children, delegate: _VectorMapLayoutDelegate(count));
+          children: children,
+          delegate: _VectorMapLayoutDelegate(children.length),
+        );
       } else {
         content = mapCanvas;
       }
@@ -153,17 +98,50 @@ class _VectorMapState extends State<VectorMap> {
       content = widget.placeHolder;
     }
 
-    BoxBorder? border;
-    if (widget.borderThickness > 0) {
-      border =
-          Border.all(color: widget.borderColor, width: widget.borderThickness);
-    }
-    Decoration? decoration;
-    if (widget.color != null || border != null) {
-      decoration = BoxDecoration(color: widget.color, border: border);
-    }
+    final border = widget.borderThickness > 0
+        ? Border.all(color: widget.borderColor, width: widget.borderThickness)
+        : null;
+
+    final decoration = widget.color != null || border != null
+        ? BoxDecoration(color: widget.color, border: border)
+        : null;
 
     return Container(decoration: decoration, child: content);
+  }
+
+  void _rebuild() {
+    setState(() {
+      // rebuild
+    });
+  }
+
+  List<LayoutId> _buildMapWithAddons({required Widget map}) {
+    List<LayoutId> children = [LayoutId(id: 0, child: map)];
+    int count = 1;
+
+    for (MapAddon addon in widget.addons!) {
+      DrawableFeature? highlight;
+
+      if (_controller.highlight != null &&
+          _controller.highlight is MapSingleHighlight) {
+        highlight =
+            (_controller.highlight as MapSingleHighlight).drawableFeature;
+      }
+      children.add(
+        LayoutId(
+          id: count,
+          child: addon.buildWidget(
+            context: context,
+            mapApi: _controller,
+            highlight: highlight?.feature,
+          ),
+        ),
+      );
+
+      count++;
+    }
+
+    return children;
   }
 
   /// Builds the canvas area
@@ -171,7 +149,7 @@ class _VectorMapState extends State<VectorMap> {
     Widget mapCanvas = LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       if (constraints.maxWidth == 0 || constraints.maxHeight == 0) {
-        return Container();
+        return const SizedBox.shrink();
       }
       Size canvasSize = Size(constraints.maxWidth, constraints.maxHeight);
       _controller.setCanvasSize(canvasSize);
@@ -179,146 +157,110 @@ class _VectorMapState extends State<VectorMap> {
       return ClipRect(
         child: CustomPaint(
           painter: MapPainter(controller: _controller),
-          child: Container(), //!TOTO: Need remove container here
+          child: Container(),
         ),
       );
     });
 
-    mapCanvas = MouseRegion(
+    mapCanvas = GestureDetector(
       child: mapCanvas,
-      onHover: (event) => _onHover(
-        localPosition: event.localPosition,
-        canvasToWorld: _controller.canvasToWorld,
-      ),
-      onExit: (event) {
-        if (_controller.highlight != null) {
-          _updateHover(null);
+      onTapDown: (details) {
+        _onFeatureTap(
+          localPosition: details.localPosition,
+          canvasToWorld: _controller.canvasToWorld,
+        );
+      },
+      onScaleStart: (details) {
+        if (_controller.mode == VectorMapMode.panAndZoom) {
+          _controller.notifyPanZoomMode(start: true);
+          setState(() {
+            _panZoom = PanZoom(
+              initialMouseLocation: details.localFocalPoint,
+              initialMapScale: _controller.scale,
+              translateX: _controller.translateX,
+              translateY: _controller.translateY,
+            );
+          });
         }
-        _controller.debugger?.updateMouseHover();
+      },
+      onScaleUpdate: (details) {
+        if (_panZoom != null) {
+          if (details.pointerCount == 1) {
+            // pan only
+            // _panZoom!.lastLocalPosition = details.localFocalPoint;
+            final diffX =
+                _panZoom!.initialMouseLocation.dx - details.localFocalPoint.dx;
+            final diffY =
+                _panZoom!.initialMouseLocation.dy - details.localFocalPoint.dy;
+
+            _controller.translate(
+              _panZoom!.translateX - diffX,
+              _panZoom!.translateY - diffY,
+            );
+          } else if (details.pointerCount > 1) {
+            // zoom
+            final newScale = _panZoom!.newScale(
+              currentMapScale: _controller.scale,
+              scale: details.scale,
+            );
+
+            _controller.zoom(details.localFocalPoint, newScale);
+          }
+        }
+      },
+      onScaleEnd: (details) {
+        if (_panZoom != null) {
+          _controller.notifyPanZoomMode(
+            start: false,
+            rebuildSimplifiedGeometry: _panZoom!.rebuildSimplifiedGeometry,
+          );
+
+          // clear pan&zoom
+          setState(() {
+            _panZoom = null;
+          });
+        }
       },
     );
-
-    mapCanvas = GestureDetector(
-        child: mapCanvas,
-        onTapDown: (details) => _onClick(
-            localPosition: details.localPosition,
-            canvasToWorld: _controller.canvasToWorld),
-        onScaleStart: (details) {
-          if (_controller.mode == VectorMapMode.panAndZoom) {
-            if (_controller.highlight != null) {
-              _updateHover(null);
-            }
-            _controller.notifyPanZoomMode(start: true);
-            setState(() {
-              _panZoom = _PanZoom(
-                  initialMouseLocation: details.localFocalPoint,
-                  initialMapScale: _controller.scale,
-                  translateX: _controller.translateX,
-                  translateY: _controller.translateY);
-            });
-          }
-        },
-        onScaleUpdate: (details) {
-          if (_panZoom != null) {
-            if (details.pointerCount == 1) {
-              // pan only
-              _panZoom!.lastLocalPosition = details.localFocalPoint;
-              double diffX = _panZoom!.initialMouseLocation.dx -
-                  details.localFocalPoint.dx;
-              double diffY = _panZoom!.initialMouseLocation.dy -
-                  details.localFocalPoint.dy;
-              _controller.translate(
-                  _panZoom!.translateX - diffX, _panZoom!.translateY - diffY);
-            } else if (details.pointerCount > 1) {
-              // zoom
-              double newScale = _panZoom!.newScale(
-                  currentMapScale: _controller.scale,
-                  mouseScale: details.scale);
-              _controller.zoom(details.localFocalPoint, newScale);
-            }
-          }
-        },
-        onScaleEnd: (details) {
-          if (_panZoom != null) {
-            _controller.notifyPanZoomMode(
-                start: false,
-                rebuildSimplifiedGeometry: _panZoom!.rebuildSimplifiedGeometry);
-            final Offset localPosition = _panZoom!.lastLocalPosition;
-            setState(() {
-              _panZoom = null;
-            });
-            _onHover(
-                localPosition: localPosition,
-                canvasToWorld: _controller.canvasToWorld);
-          }
-        });
-
-    mapCanvas = Listener(
-        child: mapCanvas,
-        onPointerSignal: (event) {
-          if (event is PointerScrollEvent &&
-              _controller.mode == VectorMapMode.panAndZoom) {
-            bool zoomIn = event.scrollDelta.dy < 0;
-            _controller.zoomOnLocation(event.localPosition, zoomIn);
-          }
-        });
 
     return Container(child: mapCanvas, padding: widget.layersPadding);
   }
 
-  /// Triggered when a pointer tap on the map.
-  void _onClick(
+  void _onFeatureTap(
       {required Offset localPosition, required Matrix4 canvasToWorld}) {
-    if (widget.clickListener != null) {
-      Offset worldCoordinate =
-          MatrixUtils.transformPoint(canvasToWorld, localPosition);
-      MapFeature? feature;
-      for (int layerIndex = _controller.layersCount - 1;
-          layerIndex >= 0;
-          layerIndex--) {
-        DrawableLayer drawableLayer = _controller.getDrawableLayer(layerIndex);
-        DrawableFeature? drawableFeature =
-            _findDrawableFeature(drawableLayer, worldCoordinate);
-        if (drawableFeature != null) {
-          feature = drawableFeature.feature;
-          break;
-        }
-      }
-      if (feature != null) {
-        widget.clickListener!(feature);
-      }
-    }
-  }
+    if (_onPanAndZoom) return;
 
-  /// Triggered when a pointer moves over the map.
-  void _onHover(
-      {required Offset localPosition, required Matrix4 canvasToWorld}) {
-    if (_onPanAndZoom) {
-      return;
-    }
-    Offset worldCoordinate =
+    final worldCoordinate =
         MatrixUtils.transformPoint(canvasToWorld, localPosition);
-
-    _controller.debugger?.updateMouseHover(
-        locationOnCanvas: localPosition, worldCoordinate: worldCoordinate);
-
+    MapFeature? feature;
     MapSingleHighlight? hoverHighlightRule;
+
     for (int layerIndex = _controller.layersCount - 1;
         layerIndex >= 0;
         layerIndex--) {
-      DrawableLayer drawableLayer = _controller.getDrawableLayer(layerIndex);
-      DrawableFeature? drawableFeature =
+      final drawableLayer = _controller.getDrawableLayer(layerIndex);
+      final drawableFeature =
           _findDrawableFeature(drawableLayer, worldCoordinate);
+
       if (drawableFeature != null) {
-        MapLayer layer = drawableLayer.layer;
+        feature = drawableFeature.feature;
+        final layer = drawableLayer.layer;
+
         hoverHighlightRule = MapSingleHighlight(
-            layerId: layer.id, drawableFeature: drawableFeature);
+          layerId: layer.id,
+          drawableFeature: drawableFeature,
+        );
+
         break;
       }
     }
 
+    if (feature != null) {
+      widget.clickListener?.call(feature);
+    }
+
     if (_controller.highlight != hoverHighlightRule) {
-      _updateHover(hoverHighlightRule);
+      _updateHighlight(hoverHighlightRule);
     }
   }
 
@@ -327,12 +269,12 @@ class _VectorMapState extends State<VectorMap> {
       DrawableLayer drawableLayer, Offset worldCoordinate) {
     for (DrawableLayerChunk chunk in drawableLayer.chunks) {
       for (int index = 0; index < chunk.length; index++) {
-        DrawableFeature drawableFeature = chunk.getDrawableFeature(index);
-        MapFeature feature = drawableFeature.feature;
+        final drawableFeature = chunk.getDrawableFeature(index);
+        final feature = drawableFeature.feature;
         if (widget.hoverRule != null && widget.hoverRule!(feature) == false) {
           continue;
         }
-        Drawable? drawable = drawableFeature.drawable;
+        final drawable = drawableFeature.drawable;
         if (drawable != null && drawable.contains(worldCoordinate)) {
           return drawableFeature;
         }
@@ -341,15 +283,13 @@ class _VectorMapState extends State<VectorMap> {
     return null;
   }
 
-  void _updateHover(MapSingleHighlight? hoverHighlightRule) {
+  void _updateHighlight(MapSingleHighlight? hoverHighlightRule) {
     if (hoverHighlightRule != null) {
       _controller.setHighlight(hoverHighlightRule);
     } else {
       _controller.clearHighlight();
     }
-    if (widget.hoverListener != null) {
-      widget.hoverListener!(hoverHighlightRule?.drawableFeature?.feature);
-    }
+    widget.hoverListener?.call(hoverHighlightRule?.drawableFeature?.feature);
   }
 }
 
@@ -370,9 +310,12 @@ class _VectorMapLayoutDelegate extends MultiChildLayoutDelegate {
         } else {
           childSize = layoutChild(id, BoxConstraints.loose(size));
           positionChild(
-              id,
-              Offset(size.width - childSize.width,
-                  size.height - childSize.height));
+            id,
+            Offset(
+              size.width - childSize.width,
+              size.height - childSize.height,
+            ),
+          );
         }
       }
     }

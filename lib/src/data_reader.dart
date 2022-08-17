@@ -310,10 +310,11 @@ class MapFeatureReader extends _GeoJsonReaderBase {
   void _addFeature({required MapGeometry geometry, _Properties? properties}) {
     _list.add(
       MapFeature(
-          id: _list.length + 1,
-          geometry: geometry,
-          properties: properties?.values,
-          label: properties?.label),
+        id: _list.length + 1,
+        geometry: geometry,
+        properties: properties?.values,
+        label: properties?.label,
+      ),
     );
   }
 }

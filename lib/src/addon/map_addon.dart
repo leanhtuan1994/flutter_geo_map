@@ -20,8 +20,9 @@ abstract class MapAddon {
   final EdgeInsetsGeometry? margin;
 
   /// Builds the [Widget] for this addon
-  Widget buildWidget(
-      {required BuildContext context,
-      required VectorMapApi mapApi,
-      MapFeature? hover});
+  Widget buildWidget({
+    required BuildContext context,
+    required VectorMapApi mapApi,
+    MapFeature? highlight,
+  });
 }

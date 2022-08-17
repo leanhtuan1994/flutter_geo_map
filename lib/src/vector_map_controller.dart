@@ -374,11 +374,14 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   void _scheduleDrawablesUpdate({required bool delayed}) {
     if (delayed) {
       int ticket = _nextDrawablesUpdateTicket();
-      Future.delayed(Duration(milliseconds: delayToRefreshResolution),
-          () => _startDrawablesUpdate(ticket: ticket));
+      Future.delayed(
+        Duration(milliseconds: delayToRefreshResolution),
+        () => _startDrawablesUpdate(ticket: ticket),
+      );
     } else {
       Future.microtask(
-          () => _startDrawablesUpdate(ticket: _currentDrawablesUpdateTicket));
+        () => _startDrawablesUpdate(ticket: _currentDrawablesUpdateTicket),
+      );
     }
   }
 
@@ -423,12 +426,14 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
             if (_rebuildSimplifiedGeometry) {
               debugger?.drawableBuildDuration.open();
               drawableFeature.drawable = DrawableBuilder.build(
-                  dataSource: dataSource,
-                  feature: drawableFeature.feature,
-                  theme: theme,
-                  worldToCanvas: _worldToCanvas,
-                  scale: _scale,
-                  simplifier: IntegerSimplifier());
+                dataSource: dataSource,
+                feature: drawableFeature.feature,
+                theme: theme,
+                worldToCanvas: _worldToCanvas,
+                scale: _scale,
+                simplifier: IntegerSimplifier(),
+              );
+
               debugger?.drawableBuildDuration.closeAndInc();
             }
             if (drawableFeature.drawable != null) {
@@ -441,16 +446,23 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
           }
 
           if (_lastCanvasSize != null) {
-            Rect canvasInWorld = MatrixUtils.transformRect(
-                _canvasToWorld,
-                Rect.fromLTWH(
-                    0, 0, _lastCanvasSize!.width, _lastCanvasSize!.height));
+            final canvasInWorld = MatrixUtils.transformRect(
+              _canvasToWorld,
+              Rect.fromLTWH(
+                0,
+                0,
+                _lastCanvasSize!.width,
+                _lastCanvasSize!.height,
+              ),
+            );
+
             if (chunk.bounds != null && chunk.bounds!.overlaps(canvasInWorld)) {
               debugger?.bufferBuildDuration.open();
               chunk.buffer = await _createBuffer(
-                  chunk: chunk,
-                  layer: drawableLayer.layer,
-                  canvasSize: _lastCanvasSize!);
+                chunk: chunk,
+                layer: drawableLayer.layer,
+                canvasSize: _lastCanvasSize!,
+              );
               debugger?.bufferBuildDuration.closeAndInc();
             }
           }
@@ -473,10 +485,11 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     }
   }
 
-  Future<ui.Image> _createBuffer(
-      {required DrawableLayerChunk chunk,
-      required MapLayer layer,
-      required Size canvasSize}) async {
+  Future<ui.Image> _createBuffer({
+    required DrawableLayerChunk chunk,
+    required MapLayer layer,
+    required Size canvasSize,
+  }) async {
     ui.PictureRecorder recorder = ui.PictureRecorder();
     Canvas canvas = Canvas(
         recorder,
@@ -487,12 +500,13 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     applyMatrixOn(canvas);
 
     DrawUtils.draw(
-        canvas: canvas,
-        chunk: chunk,
-        layer: layer,
-        contourThickness: contourThickness,
-        scale: _scale,
-        antiAlias: true);
+      canvas: canvas,
+      chunk: chunk,
+      layer: layer,
+      contourThickness: contourThickness,
+      scale: _scale,
+      antiAlias: true,
+    );
 
     canvas.restore();
 

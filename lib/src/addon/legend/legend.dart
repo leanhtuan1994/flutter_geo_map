@@ -8,11 +8,11 @@ import '../map_addon.dart';
 /// Allows customize [padding], [margin] and [decoration]
 abstract class Legend extends MapAddon {
   /// Builds a legend
-  Legend(
-      {required this.layer,
-      EdgeInsetsGeometry? padding,
-      EdgeInsetsGeometry? margin,
-      Decoration? decoration})
-      : super(padding: padding, decoration: decoration, margin: margin);
+  Legend({
+    required this.layer,
+    EdgeInsetsGeometry? padding,
+    EdgeInsetsGeometry? margin,
+    Decoration? decoration,
+  }) : super(padding: padding, decoration: decoration, margin: margin);
   final MapLayer layer;
 }
