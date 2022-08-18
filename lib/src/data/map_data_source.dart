@@ -30,25 +30,30 @@ class MapDataSource {
     Map<String, PropertyLimits> limits = <String, PropertyLimits>{};
     Map<int, MapFeature> featuresMap = <int, MapFeature>{};
     for (MapFeature feature in features) {
+      final geometry = feature.geometry;
+
       featuresMap[feature.id] = feature;
-      pointsCount += feature.geometry.pointsCount;
+      pointsCount += geometry.pointsCount;
       if (boundsFromGeometry == null) {
-        boundsFromGeometry = feature.geometry.bounds;
+        boundsFromGeometry = geometry.bounds;
       } else {
         boundsFromGeometry =
-            boundsFromGeometry.expandToInclude(feature.geometry.bounds);
+            boundsFromGeometry.expandToInclude(geometry.bounds);
       }
+
       if (feature.properties != null) {
-        for (var entry in feature.properties!.entries) {
-          dynamic value = entry.value;
+        for (final entry in feature.properties!.entries) {
+          final value = entry.value;
           double? doubleValue;
+
           if (value is int) {
             doubleValue = value.toDouble();
           } else if (value is double) {
             doubleValue = value;
           }
+
           if (doubleValue != null) {
-            String key = entry.key;
+            final key = entry.key;
             if (limits.containsKey(key)) {
               PropertyLimits propertyLimits = limits[key]!;
               propertyLimits.expand(doubleValue);
@@ -61,10 +66,11 @@ class MapDataSource {
     }
 
     return MapDataSource._(
-        features: UnmodifiableMapView<int, MapFeature>(featuresMap),
-        bounds: boundsFromGeometry,
-        pointsCount: pointsCount,
-        limits: limits.isNotEmpty ? limits : null);
+      features: UnmodifiableMapView<int, MapFeature>(featuresMap),
+      bounds: boundsFromGeometry,
+      pointsCount: pointsCount,
+      limits: limits.isNotEmpty ? limits : null,
+    );
   }
 
   /// Loads a [MapDataSource] from GeoJSON.
@@ -81,7 +87,7 @@ class MapDataSource {
     String? colorKey,
     ColorValueFormat colorValueFormat = ColorValueFormat.hex,
   }) async {
-    MapFeatureReader reader = MapFeatureReader(
+    final reader = MapFeatureReader(
       labelKey: labelKey,
       keys: keys?.toSet(),
       parseToNumber: parseToNumber?.toSet(),
@@ -100,22 +106,26 @@ class MapDataSource {
     int pointsCount = 0;
     Map<int, MapFeature> featuresMap = <int, MapFeature>{};
     int id = 1;
-    for (MapGeometry geometry in geometries) {
+
+    for (final geometry in geometries) {
       featuresMap[id] = MapFeature(id: id, geometry: geometry);
       pointsCount += geometry.pointsCount;
+
       if (boundsFromGeometry == null) {
         boundsFromGeometry = geometry.bounds;
       } else {
         boundsFromGeometry =
             boundsFromGeometry.expandToInclude(geometry.bounds);
       }
+
       id++;
     }
 
     return MapDataSource._(
-        features: UnmodifiableMapView<int, MapFeature>(featuresMap),
-        bounds: boundsFromGeometry,
-        pointsCount: pointsCount);
+      features: UnmodifiableMapView<int, MapFeature>(featuresMap),
+      bounds: boundsFromGeometry,
+      pointsCount: pointsCount,
+    );
   }
 
   PropertyLimits? getPropertyLimits(String key) {

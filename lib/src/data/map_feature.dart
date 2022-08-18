@@ -24,7 +24,7 @@ class MapFeature {
   }
 
   double? getDoubleValue(String key) {
-    dynamic d = getValue(key);
+    final d = getValue(key);
     if (d != null) {
       if (d is double) {
         return d;

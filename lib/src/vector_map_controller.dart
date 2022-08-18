@@ -1,12 +1,10 @@
 import 'dart:collection';
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
-import 'data/map_data_source.dart';
 import 'data/map_layer.dart';
 import 'debugger.dart';
 import 'draw_utils.dart';
@@ -17,20 +15,16 @@ import 'drawable/drawable_layer_chunk.dart';
 import 'error.dart';
 import 'map_highlight.dart';
 import 'simplifier.dart';
-import 'theme/map_theme.dart';
 import 'vector_map_api.dart';
 import 'vector_map_mode.dart';
 
-/// Controller for [VectorMap]
 class VectorMapController extends ChangeNotifier implements VectorMapApi {
-  /// The default [contourThickness] value is 1.
-  /// The default [mode] value is [autoFit].
   VectorMapController({
     List<MapLayer>? layers,
+    this.debugger,
     this.contourThickness = 1,
     this.delayToRefreshResolution = 1000,
     VectorMapMode mode = VectorMapMode.autoFit,
-    this.debugger,
     this.maxScale = 30000,
     this.minScale = 0.1,
   })  : _mode = mode,
@@ -48,7 +42,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   set mode(VectorMapMode mode) {
     if (_mode != mode) {
       _mode = mode;
-      if (mode == VectorMapMode.autoFit) {
+      if (mode.isAutoFit) {
         fit();
       }
       debugger?.updateMode(mode);
@@ -84,11 +78,11 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   double get translateY => _translateY;
 
   /// Matrix to be used to convert world coordinates to canvas coordinates.
-  Matrix4 _worldToCanvas = VectorMapController._buildMatrix4();
+  Matrix4 _worldToCanvas = VectorMapController._buildMatrix4;
   Matrix4 get worldToCanvas => _worldToCanvas;
 
   /// Matrix to be used to convert canvas coordinates to world coordinates.
-  Matrix4 _canvasToWorld = VectorMapController._buildMatrix4();
+  Matrix4 _canvasToWorld = VectorMapController._buildMatrix4;
   Matrix4 get canvasToWorld => _canvasToWorld;
 
   MapHighlight? _highlight;
@@ -99,6 +93,9 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
 
   int _currentDrawablesUpdateTicket = 0;
 
+  /// The Border size value
+  /// Using for [DrawUtils] draw contour
+  /// Default value is 1
   final double contourThickness;
 
   final int delayToRefreshResolution;
@@ -163,7 +160,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   }
 
   bool get hoverDrawable {
-    for (DrawableLayer drawableLayer in _drawableLayers) {
+    for (final drawableLayer in _drawableLayers) {
       if (drawableLayer.layer.hoverDrawable) {
         return true;
       }
@@ -199,7 +196,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
       // cancel running update
       _cancelDrawablesUpdate();
       // cancel scheduled update
-      _nextDrawablesUpdateTicket();
+      _nextDrawablesUpdateTicket;
     } else {
       if (rebuildSimplifiedGeometry) {
         // only turn on if true. Avoid last false due pan after zoom generated
@@ -263,8 +260,8 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
 
   void _fit(Size canvasSize) {
     if (_worldBounds != null && canvasSize.isEmpty == false) {
-      double scaleX = canvasSize.width / _worldBounds!.width;
-      double scaleY = canvasSize.height / _worldBounds!.height;
+      final scaleX = canvasSize.width / _worldBounds!.width;
+      final scaleY = canvasSize.height / _worldBounds!.height;
       _scale = _limitScale(math.min(scaleX, scaleY));
       _translateX =
           (canvasSize.width / 2.0) - (_scale * _worldBounds!.center.dx);
@@ -280,9 +277,10 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   void zoomOnCenter(bool zoomIn) {
     if (_lastCanvasSize != null) {
       _zoom(
-          _lastCanvasSize!,
-          Offset(_lastCanvasSize!.width / 2, _lastCanvasSize!.height / 2),
-          zoomIn);
+        _lastCanvasSize!,
+        Offset(_lastCanvasSize!.width / 2, _lastCanvasSize!.height / 2),
+        zoomIn,
+      );
     }
   }
 
@@ -313,7 +311,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     } else {
       zoom -= zoomFactor;
     }
-    double newScale = _limitScale(_scale * zoom);
+    final newScale = _limitScale(_scale * zoom);
     Offset refInWorld =
         MatrixUtils.transformPoint(_canvasToWorld, locationOnCanvas);
     _translateX = locationOnCanvas.dx - (refInWorld.dx * newScale);
@@ -341,8 +339,10 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     }
   }
 
+  /// It builds a 4x4 matrix from a 3x3 matrix
+  ///
   void _buildMatrices4() {
-    _worldToCanvas = VectorMapController._buildMatrix4();
+    _worldToCanvas = VectorMapController._buildMatrix4;
     _worldToCanvas.translate(_translateX, _translateY, 0);
     _worldToCanvas.scale(_scale, -_scale, 1);
 
@@ -363,7 +363,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     }
   }
 
-  int _nextDrawablesUpdateTicket() {
+  int get _nextDrawablesUpdateTicket {
     _currentDrawablesUpdateTicket++;
     if (_currentDrawablesUpdateTicket == 999999) {
       _currentDrawablesUpdateTicket = 0;
@@ -373,7 +373,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
 
   void _scheduleDrawablesUpdate({required bool delayed}) {
     if (delayed) {
-      int ticket = _nextDrawablesUpdateTicket();
+      int ticket = _nextDrawablesUpdateTicket;
       Future.delayed(
         Duration(milliseconds: delayToRefreshResolution),
         () => _startDrawablesUpdate(ticket: ticket),
@@ -403,16 +403,19 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     _updateState = _UpdateState.running;
     while (_updateState == _UpdateState.running) {
       int pointsCount = 0;
+
       debugger?.bufferBuildDuration.clear();
       debugger?.drawableBuildDuration.clear();
       debugger?.updateSimplifiedPointsCount(pointsCount);
+
       for (DrawableLayer drawableLayer in _drawableLayers) {
         if (_updateState != _UpdateState.running) {
           break;
         }
-        MapLayer layer = drawableLayer.layer;
-        MapTheme theme = layer.theme;
-        MapDataSource dataSource = layer.dataSource;
+
+        final layer = drawableLayer.layer;
+        final theme = layer.theme;
+        final dataSource = layer.dataSource;
 
         for (DrawableLayerChunk chunk in drawableLayer.chunks) {
           if (_updateState != _UpdateState.running) {
@@ -425,6 +428,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
             DrawableFeature drawableFeature = chunk.getDrawableFeature(index);
             if (_rebuildSimplifiedGeometry) {
               debugger?.drawableBuildDuration.open();
+
               drawableFeature.drawable = DrawableBuilder.build(
                 dataSource: dataSource,
                 feature: drawableFeature.feature,
@@ -436,9 +440,11 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
 
               debugger?.drawableBuildDuration.closeAndInc();
             }
+
             if (drawableFeature.drawable != null) {
               pointsCount += drawableFeature.drawable!.pointsCount;
             }
+
             debugger?.updateSimplifiedPointsCount(pointsCount);
           }
           if (_updateState != _UpdateState.running) {
@@ -466,9 +472,11 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
               debugger?.bufferBuildDuration.closeAndInc();
             }
           }
+
           if (_updateState == _UpdateState.running) {
             notifyListeners();
           }
+
           await Future.delayed(Duration.zero);
         }
       }
@@ -492,9 +500,9 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   }) async {
     ui.PictureRecorder recorder = ui.PictureRecorder();
     Canvas canvas = Canvas(
-        recorder,
-        Rect.fromPoints(
-            Offset.zero, Offset(canvasSize.width, canvasSize.height)));
+      recorder,
+      Rect.fromPoints(Offset.zero, Offset(canvasSize.width, canvasSize.height)),
+    );
 
     canvas.save();
     applyMatrixOn(canvas);
@@ -514,11 +522,19 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     return picture.toImage(canvasSize.width.ceil(), canvasSize.height.ceil());
   }
 
-  Future<MemoryImage> toMemoryImageProvider(ui.Image image) async {
-    ByteData? imageByteData =
-        await image.toByteData(format: ui.ImageByteFormat.png);
-    Uint8List uint8list = imageByteData!.buffer.asUint8List();
-    return MemoryImage(uint8list);
+  Future<MemoryImage?> toMemoryImageProvider(ui.Image image) async {
+    try {
+      final imageByteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      if (imageByteData == null) {
+        return null;
+      }
+
+      final uint8list = imageByteData.buffer.asUint8List();
+      return MemoryImage(uint8list);
+    } catch (error) {
+      return null;
+    }
   }
 
   /// Applies a matrix on the canvas.
@@ -527,7 +543,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     canvas.scale(_scale, -_scale);
   }
 
-  static Matrix4 _buildMatrix4() {
+  static Matrix4 get _buildMatrix4 {
     return Matrix4(
       1,
       0,

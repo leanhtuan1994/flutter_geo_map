@@ -46,8 +46,8 @@ class MapLineString with MapGeometry {
     List<MapPoint> points = [];
     for (int i = 0; i < coordinates.length; i = i + 2) {
       if (i < coordinates.length - 1) {
-        double x = coordinates[i];
-        double y = coordinates[i + 1];
+        final x = coordinates[i];
+        final y = coordinates[i + 1];
         points.add(MapPoint(x, y));
       }
     }
@@ -55,15 +55,18 @@ class MapLineString with MapGeometry {
   }
 
   factory MapLineString(List<MapPoint> points) {
-    //TODO exception for insufficient number of points?
-    MapPoint first = points.first;
+    if (points.isEmpty) {
+      throw ArgumentError("points can be empty");
+    }
+
+    final first = points.first;
     double left = first.dx;
     double right = first.dx;
     double top = first.dy;
     double bottom = first.dy;
 
     for (int i = 1; i < points.length; i++) {
-      MapPoint point = points[i];
+      final point = points[i];
       left = math.min(point.dx, left);
       right = math.max(point.dx, right);
       bottom = math.max(point.dy, bottom);
@@ -79,10 +82,10 @@ class MapLineString with MapGeometry {
   SimplifiedPath toSimplifiedPath(
       Matrix4 worldToCanvas, GeometrySimplifier simplifier) {
     Path path = Path();
-    List<MapPoint> simplifiedPoints =
-        simplifier.simplify(worldToCanvas, points);
+    final simplifiedPoints = simplifier.simplify(worldToCanvas, points);
+
     for (int i = 0; i < simplifiedPoints.length; i++) {
-      MapPoint point = simplifiedPoints[i];
+      final point = simplifiedPoints[i];
       if (i == 0) {
         path.moveTo(point.dx, point.dy);
       } else {
@@ -104,11 +107,15 @@ class MapMultiLineString with MapGeometry {
 
   factory MapMultiLineString(List<MapLineString> linesString) {
     Rect bounds = linesString.first.bounds;
-    for (int i = 1; i < linesString.length; i++) {
-      bounds = bounds.expandToInclude(linesString[i].bounds);
+
+    for (final line in linesString) {
+      bounds = bounds.expandToInclude(line.bounds);
     }
+
     return MapMultiLineString._(
-        UnmodifiableListView<MapLineString>(linesString), bounds);
+      UnmodifiableListView<MapLineString>(linesString),
+      bounds,
+    );
   }
 
   @override
@@ -117,9 +124,11 @@ class MapMultiLineString with MapGeometry {
   /// Gets the count of points.
   int _getPointsCount() {
     int count = 0;
+
     for (MapLineString line in linesString) {
       count += line.pointsCount;
     }
+
     return count;
   }
 }
@@ -135,10 +144,11 @@ class MapLinearRing with MapGeometry {
 
   factory MapLinearRing.coordinates(List<double> coordinates) {
     List<MapPoint> points = [];
+
     for (int i = 0; i < coordinates.length; i = i + 2) {
       if (i < coordinates.length - 1) {
-        double x = coordinates[i];
-        double y = coordinates[i + 1];
+        final x = coordinates[i];
+        final y = coordinates[i + 1];
         points.add(MapPoint(x, y));
       }
     }
@@ -147,6 +157,11 @@ class MapLinearRing with MapGeometry {
 
   factory MapLinearRing(List<MapPoint> points) {
     //TODO exception for insufficient number of points?
+
+    if (points.isEmpty) {
+      throw ArgumentError("points cannot be empty");
+    }
+
     MapPoint first = points.first;
     double left = first.dx;
     double right = first.dx;
@@ -154,13 +169,13 @@ class MapLinearRing with MapGeometry {
     double bottom = first.dy;
 
     for (int i = 1; i < points.length; i++) {
-      MapPoint point = points[i];
+      final point = points[i];
       left = math.min(point.dx, left);
       right = math.max(point.dx, right);
       bottom = math.max(point.dy, bottom);
       top = math.min(point.dy, top);
     }
-    Rect bounds = Rect.fromLTRB(left, top, right, bottom);
+    final bounds = Rect.fromLTRB(left, top, right, bottom);
     return MapLinearRing._(UnmodifiableListView<MapPoint>(points), bounds);
   }
 
@@ -170,8 +185,7 @@ class MapLinearRing with MapGeometry {
   SimplifiedPath toSimplifiedPath(
       Matrix4 worldToCanvas, GeometrySimplifier simplifier) {
     Path path = Path();
-    List<MapPoint> simplifiedPoints =
-        simplifier.simplify(worldToCanvas, points);
+    final simplifiedPoints = simplifier.simplify(worldToCanvas, points);
     for (int i = 0; i < simplifiedPoints.length; i++) {
       MapPoint point = simplifiedPoints[i];
       if (i == 0) {
@@ -201,8 +215,8 @@ class MapPolygon with MapGeometry {
     List<MapPoint> points = [];
     for (int i = 0; i < coordinates.length; i = i + 2) {
       if (i < coordinates.length - 1) {
-        double x = coordinates[i];
-        double y = coordinates[i + 1];
+        final x = coordinates[i];
+        final y = coordinates[i + 1];
         points.add(MapPoint(x, y));
         if (points.length >= 3) {
           if (points.first.x == x && points.first.y == y) {
@@ -224,12 +238,16 @@ class MapPolygon with MapGeometry {
       MapLinearRing externalRing, List<MapLinearRing>? internalRings) {
     Rect bounds = externalRing.bounds;
 
-    List<MapLinearRing> internal = internalRings ?? [];
+    final internal = internalRings ?? [];
     for (MapLinearRing linearRing in internal) {
       bounds = bounds.expandToInclude(linearRing.bounds);
     }
+
     return MapPolygon._(
-        externalRing, UnmodifiableListView<MapLinearRing>(internal), bounds);
+      externalRing,
+      UnmodifiableListView<MapLinearRing>(internal),
+      bounds,
+    );
   }
 
   @override
@@ -271,11 +289,15 @@ class MapMultiPolygon with MapGeometry {
 
   factory MapMultiPolygon(List<MapPolygon> polygons) {
     Rect bounds = polygons.first.bounds;
-    for (int i = 1; i < polygons.length; i++) {
-      bounds = bounds.expandToInclude(polygons[i].bounds);
+
+    for (final polygon in polygons) {
+      bounds = bounds.expandToInclude(polygon.bounds);
     }
+
     return MapMultiPolygon._(
-        UnmodifiableListView<MapPolygon>(polygons), bounds);
+      UnmodifiableListView<MapPolygon>(polygons),
+      bounds,
+    );
   }
 
   @override
@@ -284,7 +306,7 @@ class MapMultiPolygon with MapGeometry {
   /// Gets the count of points.
   int _getPointsCount() {
     int count = 0;
-    for (MapPolygon polygon in polygons) {
+    for (final polygon in polygons) {
       count += polygon.pointsCount;
     }
     return count;

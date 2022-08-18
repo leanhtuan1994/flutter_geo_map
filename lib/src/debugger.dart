@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'data/map_layer.dart';
 import 'drawable/drawable_layer.dart';
 import 'vector_map_mode.dart';
 
@@ -66,9 +65,9 @@ class MapDebugger extends ChangeNotifier {
     _layersCount = drawableLayers.length;
     _chunksCount = chunksCount;
     for (DrawableLayer drawableLayer in drawableLayers) {
-      MapLayer layer = drawableLayer.layer;
-      _featuresCount += layer.dataSource.features.length;
-      _originalPointsCount += layer.dataSource.pointsCount;
+      final dataSourceLayer = drawableLayer.layer.dataSource;
+      _featuresCount += dataSourceLayer.features.length;
+      _originalPointsCount += dataSourceLayer.pointsCount;
     }
     _simplifiedPointsCount = 0;
     notifyListeners();

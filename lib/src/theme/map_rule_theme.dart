@@ -19,11 +19,12 @@ class MapRuleTheme extends MapTheme {
     required List<ColorRule> colorRules,
   })  : _colorRules = colorRules,
         super(
-            color: color,
-            contourColor: contourColor,
-            labelVisibility: labelVisibility,
-            labelStyleBuilder: labelStyleBuilder,
-            markerBuilder: markerBuilder);
+          color: color,
+          contourColor: contourColor,
+          labelVisibility: labelVisibility,
+          labelStyleBuilder: labelStyleBuilder,
+          markerBuilder: markerBuilder,
+        );
 
   final List<ColorRule> _colorRules;
 

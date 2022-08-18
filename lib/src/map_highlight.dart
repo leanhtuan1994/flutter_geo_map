@@ -24,8 +24,10 @@ abstract class MapHighlight {
 
 /// Defines a single [MapFeature] to be highlighted.
 class MapSingleHighlight extends MapHighlight {
-  MapSingleHighlight({required int layerId, this.drawableFeature})
-      : super(layerId: layerId);
+  MapSingleHighlight({
+    required int layerId,
+    this.drawableFeature,
+  }) : super(layerId: layerId);
 
   final DrawableFeature? drawableFeature;
 
@@ -53,13 +55,14 @@ class MapGradientHighlight extends MapHighlight {
   /// The [rangePerPixel] is the range of value represented by each legend
   /// bar pixel, that is, the range between the min and the max values
   /// divided by the height of the legend bar.
-  factory MapGradientHighlight(
-      {required int layerId,
-      required String key,
-      required double value,
-      required double rangePerPixel,
-      required double max,
-      required double min}) {
+  factory MapGradientHighlight({
+    required int layerId,
+    required String key,
+    required double value,
+    required double rangePerPixel,
+    required double max,
+    required double min,
+  }) {
     int comparator = 0;
     double r = comparatorPrecisionPixels * rangePerPixel;
     if (value > max - r) {

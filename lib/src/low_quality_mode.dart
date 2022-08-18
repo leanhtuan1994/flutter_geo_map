@@ -6,10 +6,11 @@ import 'package:flutter/material.dart';
 /// Allows you to simplify drawing during these events avoiding freezes.
 /// The default [quality] value is 0.3.
 class LowQualityMode {
-  LowQualityMode(
-      {this.quality = 0.3,
-      this.strokeColor = Colors.black,
-      this.fillEnabled = false}) {
+  LowQualityMode({
+    this.quality = 0.3,
+    this.strokeColor = Colors.black,
+    this.fillEnabled = false,
+  }) {
     if (quality <= 0 || quality > 1) {
       throw ArgumentError(
           'Quality value must be greater than 0 and less than or equal to 1');

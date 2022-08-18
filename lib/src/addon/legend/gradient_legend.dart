@@ -16,22 +16,23 @@ class GradientLegend extends Legend {
   /// Builds a [GradientLegend].
   ///
   /// The layer's theme must be a [MapGradientTheme].
-  GradientLegend(
-      {required MapLayer layer,
-      EdgeInsetsGeometry? padding,
-      EdgeInsetsGeometry? margin = const EdgeInsets.all(8),
-      Decoration? decoration,
-      this.barHeight = 100,
-      double? fontSize,
-      this.barWidth = 15,
-      this.textGap = 8,
-      this.barBorder})
-      : fontSize = fontSize != null ? math.max(fontSize, 6) : 12,
+  GradientLegend({
+    required MapLayer layer,
+    EdgeInsetsGeometry? padding,
+    EdgeInsetsGeometry? margin = const EdgeInsets.all(8),
+    Decoration? decoration,
+    this.barHeight = 100,
+    double? fontSize,
+    this.barWidth = 15,
+    this.textGap = 8,
+    this.barBorder,
+  })  : fontSize = fontSize != null ? math.max(fontSize, 6) : 12,
         super(
-            layer: layer,
-            padding: padding,
-            margin: margin,
-            decoration: decoration) {
+          layer: layer,
+          padding: padding,
+          margin: margin,
+          decoration: decoration,
+        ) {
     if (layer.theme is MapGradientTheme == false) {
       throw VectorMapError('The layer theme must be a MapGradientTheme');
     }

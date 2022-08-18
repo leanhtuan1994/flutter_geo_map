@@ -40,13 +40,16 @@ class IntegerSimplifier extends GeometrySimplifier {
   List<MapPoint> simplify(Matrix4 worldToCanvas, List<MapPoint> points) {
     List<MapPoint> simplifiedPoints = [];
     MapPoint? lastMapPoint;
-    for (MapPoint point in points) {
-      MapPoint transformedPoint = transformPoint(worldToCanvas, point);
 
-      transformedPoint = MapPoint(transformedPoint.x.truncateToDouble(),
-          transformedPoint.y.truncateToDouble());
-      if (simplifiedPoints.isEmpty ||
-          _accept(lastMapPoint!, transformedPoint)) {
+    for (MapPoint point in points) {
+      final tfPoint = transformPoint(worldToCanvas, point);
+
+      final transformedPoint = MapPoint(
+        tfPoint.x.truncateToDouble(),
+        tfPoint.y.truncateToDouble(),
+      );
+
+      if (simplifiedPoints.isEmpty || _accept(lastMapPoint, transformedPoint)) {
         simplifiedPoints.add(point);
         lastMapPoint = transformedPoint;
       }
@@ -54,12 +57,14 @@ class IntegerSimplifier extends GeometrySimplifier {
     return simplifiedPoints;
   }
 
-  bool _accept(MapPoint p1, MapPoint p2) {
-    double dx = (p1.x - p2.x).abs();
+  bool _accept(MapPoint? p1, MapPoint? p2) {
+    if (p1 == null || p2 == null) return false;
+
+    final dx = (p1.x - p2.x).abs();
     if (dx >= tolerance) {
       return true;
     }
-    double dy = (p1.y - p2.y).abs();
+    final dy = (p1.y - p2.y).abs();
     return dy >= tolerance;
   }
 }

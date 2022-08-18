@@ -6,21 +6,24 @@ import 'map_theme.dart';
 /// This theme is activated by hover or external components like a legend.
 class MapHighlightTheme {
   /// Builds a [MapHighlightTheme]
-  MapHighlightTheme(
-      {this.color,
-      this.contourColor,
-      this.overlayContour = false,
-      this.labelVisibility,
-      this.labelStyleBuilder});
+  MapHighlightTheme({
+    this.color,
+    this.contourColor,
+    this.labelVisibility,
+    this.labelStyleBuilder,
+    this.overlayContour = false,
+  });
 
   final Color? color;
   final Color? contourColor;
-  final bool overlayContour;
+
   final LabelVisibility? labelVisibility;
   final LabelStyleBuilder? labelStyleBuilder;
 
+  final bool overlayContour;
+
   /// Indicates whether the theme has any value set.
-  bool hasValue() {
+  bool get hasValue {
     return color != null || contourColor != null || labelVisibility != null;
   }
 }

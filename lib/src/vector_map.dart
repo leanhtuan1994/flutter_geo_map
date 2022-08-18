@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'addon/map_addon.dart';
 import 'data/map_feature.dart';
-import 'drawable/drawable.dart';
 import 'drawable/drawable_feature.dart';
 import 'drawable/drawable_layer.dart';
 import 'drawable/drawable_layer_chunk.dart';
@@ -11,7 +10,6 @@ import 'map_highlight.dart';
 import 'map_painter.dart';
 import 'pan_zoom.dart';
 import 'vector_map_controller.dart';
-import 'vector_map_mode.dart';
 
 /// Vector map widget.
 class VectorMap extends StatefulWidget {
@@ -19,9 +17,9 @@ class VectorMap extends StatefulWidget {
     Key? key,
     this.controller,
     this.color,
-    this.hoverRule,
+    this.highlightRule,
     this.hoverListener,
-    this.clickListener,
+    this.onFeaturePress,
     this.addons,
     this.placeHolder,
     this.lowQualityMode,
@@ -30,16 +28,38 @@ class VectorMap extends StatefulWidget {
     this.layersPadding = const EdgeInsets.all(8),
   }) : super(key: key);
 
+  /// The Controller
+  ///
   final VectorMapController? controller;
+
+  /// Background color
+  ///
   final Color? color;
+
+  /// A placeholder widget that is displayed when layers empty
   final Widget? placeHolder;
-  final EdgeInsetsGeometry layersPadding;
-  final HoverRule? hoverRule;
-  final HoverListener? hoverListener;
-  final FeatureClickListener? clickListener;
+
+  /// Set highlight rule that can be select or not
+  final HighlightRule? highlightRule;
+
+  /// Callback if feature highlighted
+  final HighlightListener? hoverListener;
+
+  /// Callback any feature pressed
+  final FeaturePressListener? onFeaturePress;
+
+  /// Addons
   final List<MapAddon>? addons;
+
+  /// Handle low quality for some case improve performance
   final LowQualityMode? lowQualityMode;
+
+  final EdgeInsetsGeometry layersPadding;
+
+  /// Border color for parent layers map widget
   final Color borderColor;
+
+  // Border size for parent layers map widget
   final double borderThickness;
 
   @override
@@ -171,7 +191,7 @@ class _VectorMapState extends State<VectorMap> {
         );
       },
       onScaleStart: (details) {
-        if (_controller.mode == VectorMapMode.panAndZoom) {
+        if (_controller.mode.isPanAndZoom) {
           _controller.notifyPanZoomMode(start: true);
           setState(() {
             _panZoom = PanZoom(
@@ -256,7 +276,7 @@ class _VectorMapState extends State<VectorMap> {
     }
 
     if (feature != null) {
-      widget.clickListener?.call(feature);
+      widget.onFeaturePress?.call(feature);
     }
 
     if (_controller.highlight != hoverHighlightRule) {
@@ -271,7 +291,8 @@ class _VectorMapState extends State<VectorMap> {
       for (int index = 0; index < chunk.length; index++) {
         final drawableFeature = chunk.getDrawableFeature(index);
         final feature = drawableFeature.feature;
-        if (widget.hoverRule != null && widget.hoverRule!(feature) == false) {
+        if (widget.highlightRule != null &&
+            widget.highlightRule!(feature) == false) {
           continue;
         }
         final drawable = drawableFeature.drawable;
@@ -325,8 +346,8 @@ class _VectorMapLayoutDelegate extends MultiChildLayoutDelegate {
   bool shouldRelayout(covariant MultiChildLayoutDelegate oldDelegate) => false;
 }
 
-typedef FeatureClickListener = void Function(MapFeature feature);
+typedef FeaturePressListener = void Function(MapFeature feature);
 
-typedef HoverRule = bool Function(MapFeature feature);
+typedef HighlightRule = bool Function(MapFeature feature);
 
-typedef HoverListener = void Function(MapFeature? feature);
+typedef HighlightListener = void Function(MapFeature? feature);
