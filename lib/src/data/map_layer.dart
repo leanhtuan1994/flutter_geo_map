@@ -7,8 +7,8 @@ import 'map_data_source.dart';
 /// Layer for [VectorMap].
 class MapLayer {
   MapLayer({
-    int? id,
     required this.dataSource,
+    int? id,
     MapTheme? theme,
     this.highlightTheme,
     this.name,
@@ -23,7 +23,7 @@ class MapLayer {
 
   /// Indicates if the hover is drawable, if there is any highlight theme and
   /// if it has a set value.
-  bool get hoverDrawable {
+  bool get highlightDrawable {
     return highlightTheme?.hasValue ?? false;
   }
 

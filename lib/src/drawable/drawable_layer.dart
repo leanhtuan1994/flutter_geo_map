@@ -14,16 +14,20 @@ class DrawableLayer {
   factory DrawableLayer(MapLayer layer) {
     List<DrawableLayerChunk> chunks = [];
     DrawableLayerChunk chunk = DrawableLayerChunk();
-    for (MapFeature feature in layer.dataSource.features.values) {
+
+    for (final feature in layer.dataSource.features.values) {
       chunk.add(feature);
+
       if (chunk.pointsCount > pointsPerChunk) {
         chunks.add(chunk);
         chunk = DrawableLayerChunk();
       }
     }
+
     if (chunk.pointsCount > 0) {
       chunks.add(chunk);
     }
+
     return DrawableLayer._(layer, UnmodifiableListView(chunks));
   }
 

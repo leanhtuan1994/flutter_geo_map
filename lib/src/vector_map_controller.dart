@@ -6,7 +6,6 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import 'data/map_layer.dart';
-import 'debugger.dart';
 import 'draw_utils.dart';
 import 'drawable/drawable_builder.dart';
 import 'drawable/drawable_feature.dart';
@@ -21,17 +20,17 @@ import 'vector_map_mode.dart';
 class VectorMapController extends ChangeNotifier implements VectorMapApi {
   VectorMapController({
     List<MapLayer>? layers,
-    this.debugger,
     this.contourThickness = 1,
     this.delayToRefreshResolution = 1000,
     VectorMapMode mode = VectorMapMode.autoFit,
     this.maxScale = 30000,
     this.minScale = 0.1,
+    this.barrierDismissibleHighlight = true,
   })  : _mode = mode,
         _scale = minScale {
     layers?.forEach(_addLayer);
     _afterLayersChange();
-    debugger?.updateMode(mode);
+
     if (maxScale <= minScale) {
       throw ArgumentError('maxScale must be bigger than minScale');
     }
@@ -45,7 +44,6 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
       if (mode.isAutoFit) {
         fit();
       }
-      debugger?.updateMode(mode);
     }
   }
 
@@ -100,7 +98,9 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
 
   final int delayToRefreshResolution;
 
-  final MapDebugger? debugger;
+  /// Check user can touchable out size of [MapLayer] to remove highlight drawable
+  /// Default value is true
+  final bool barrierDismissibleHighlight;
 
   /// Adds a layer.
   ///
@@ -115,17 +115,13 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     if (_layerIdAndLayer.containsKey(layer.id)) {
       throw VectorMapError('Duplicated layer id: ' + layer.id.toString());
     }
+
     _layerIdAndLayer[layer.id] = layer;
     _drawableLayers.add(DrawableLayer(layer));
   }
 
   void _afterLayersChange() {
     _worldBounds = DrawableLayer.boundsOf(_drawableLayers);
-    int chunksCount = 0;
-    for (var drawableLayer in _drawableLayers) {
-      chunksCount += drawableLayer.chunks.length;
-    }
-    debugger?.updateLayers(_drawableLayers, chunksCount);
   }
 
   /// Gets the count of layers.
@@ -143,12 +139,13 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     if (index >= 0 && index < _drawableLayers.length) {
       return _drawableLayers[index].layer;
     }
+
     throw VectorMapError('Invalid layer index: $index');
   }
 
   /// Gets a layer given an id.
   MapLayer getLayerById(int id) {
-    MapLayer? layer = _layerIdAndLayer[id];
+    final layer = _layerIdAndLayer[id];
     if (layer == null) {
       throw VectorMapError('Invalid layer id: $id');
     }
@@ -159,9 +156,9 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     return _layerIdAndLayer.containsKey(id);
   }
 
-  bool get hoverDrawable {
+  bool get highlightDrawable {
     for (final drawableLayer in _drawableLayers) {
-      if (drawableLayer.layer.hoverDrawable) {
+      if (drawableLayer.layer.highlightDrawable) {
         return true;
       }
     }
@@ -175,7 +172,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   @override
   void clearHighlight() {
     _highlight = null;
-    if (hoverDrawable) {
+    if (highlightDrawable) {
       notifyListeners();
     }
   }
@@ -183,7 +180,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   @override
   void setHighlight(MapHighlight newHighlight) {
     _highlight = newHighlight;
-    if (hoverDrawable) {
+    if (highlightDrawable) {
       notifyListeners();
     }
   }
@@ -404,10 +401,6 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     while (_updateState == _UpdateState.running) {
       int pointsCount = 0;
 
-      debugger?.bufferBuildDuration.clear();
-      debugger?.drawableBuildDuration.clear();
-      debugger?.updateSimplifiedPointsCount(pointsCount);
-
       for (DrawableLayer drawableLayer in _drawableLayers) {
         if (_updateState != _UpdateState.running) {
           break;
@@ -427,8 +420,6 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
             }
             DrawableFeature drawableFeature = chunk.getDrawableFeature(index);
             if (_rebuildSimplifiedGeometry) {
-              debugger?.drawableBuildDuration.open();
-
               drawableFeature.drawable = DrawableBuilder.build(
                 dataSource: dataSource,
                 feature: drawableFeature.feature,
@@ -437,15 +428,11 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
                 scale: _scale,
                 simplifier: IntegerSimplifier(),
               );
-
-              debugger?.drawableBuildDuration.closeAndInc();
             }
 
             if (drawableFeature.drawable != null) {
               pointsCount += drawableFeature.drawable!.pointsCount;
             }
-
-            debugger?.updateSimplifiedPointsCount(pointsCount);
           }
           if (_updateState != _UpdateState.running) {
             break;
@@ -463,13 +450,11 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
             );
 
             if (chunk.bounds != null && chunk.bounds!.overlaps(canvasInWorld)) {
-              debugger?.bufferBuildDuration.open();
               chunk.buffer = await _createBuffer(
                 chunk: chunk,
                 layer: drawableLayer.layer,
                 canvasSize: _lastCanvasSize!,
               );
-              debugger?.bufferBuildDuration.closeAndInc();
             }
           }
 

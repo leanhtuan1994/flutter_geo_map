@@ -207,7 +207,7 @@ class _VectorMapState extends State<VectorMap> {
         if (_panZoom != null) {
           if (details.pointerCount == 1) {
             // pan only
-            // _panZoom!.lastLocalPosition = details.localFocalPoint;
+
             final diffX =
                 _panZoom!.initialMouseLocation.dx - details.localFocalPoint.dx;
             final diffY =
@@ -307,9 +307,10 @@ class _VectorMapState extends State<VectorMap> {
   void _updateHighlight(MapSingleHighlight? hoverHighlightRule) {
     if (hoverHighlightRule != null) {
       _controller.setHighlight(hoverHighlightRule);
-    } else {
+    } else if (_controller.barrierDismissibleHighlight) {
       _controller.clearHighlight();
     }
+
     widget.hoverListener?.call(hoverHighlightRule?.drawableFeature?.feature);
   }
 }

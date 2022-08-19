@@ -6,13 +6,13 @@ class PanZoom {
     required this.initialMapScale,
     required this.translateX,
     required this.translateY,
-  }) : lastLocalPosition = initialMouseLocation;
+  });
 
   final double initialMapScale;
   final Offset initialMouseLocation;
   final double translateX;
   final double translateY;
-  Offset lastLocalPosition;
+
   bool _rebuildSimplifiedGeometry = false;
   bool get rebuildSimplifiedGeometry => _rebuildSimplifiedGeometry;
 
