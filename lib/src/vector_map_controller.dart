@@ -69,6 +69,8 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   double _scale;
   double get scale => _scale;
 
+  double _fitScale = 1.0;
+
   double _translateX = 0;
   double get translateX => _translateX;
 
@@ -260,6 +262,9 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
       final scaleX = canvasSize.width / _worldBounds!.width;
       final scaleY = canvasSize.height / _worldBounds!.height;
       _scale = _limitScale(math.min(scaleX, scaleY));
+      _fitScale = _scale;
+
+      /// Moving to center
       _translateX =
           (canvasSize.width / 2.0) - (_scale * _worldBounds!.center.dx);
       _translateY =
@@ -271,7 +276,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   /// Zooms on the canvas center.
   ///
   /// Listeners will be notified.
-  void zoomOnCenter(bool zoomIn) {
+  void zoomOnCenter({bool zoomIn = false}) {
     if (_lastCanvasSize != null) {
       _zoom(
         _lastCanvasSize!,
@@ -281,12 +286,24 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     }
   }
 
+  void moveTargetToCenter({required Offset locationOnCanvas}) {
+    if (_lastCanvasSize != null) {
+      final dx = _lastCanvasSize!.width / 2;
+      final dy = _lastCanvasSize!.height / 2;
+
+      final diffX = locationOnCanvas.dx - dx;
+      final diffY = locationOnCanvas.dy - dy;
+
+      translate(_translateX - diffX, _translateY - diffY);
+    }
+  }
+
   /// It takes an offset on the canvas and a boolean, and it zooms in or out on that location
   ///
   /// Args:
   ///   locationOnCanvas (Offset): The location on the canvas where the zoom should be centered.
   ///   zoomIn (bool): true if you want to zoom in, false if you want to zoom out
-  void zoomOnLocation(Offset locationOnCanvas, bool zoomIn) {
+  void zoomOnLocation(Offset locationOnCanvas, {bool zoomIn = false}) {
     if (_lastCanvasSize != null) {
       _zoom(_lastCanvasSize!, locationOnCanvas, zoomIn);
     }
@@ -325,7 +342,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     if (_scale != newScale) {
       newScale = _limitScale(newScale);
       if (_scale != newScale) {
-        Offset refInWorld =
+        final refInWorld =
             MatrixUtils.transformPoint(_canvasToWorld, locationOnCanvas);
         _translateX = locationOnCanvas.dx - (refInWorld.dx * newScale);
         _translateY = locationOnCanvas.dy + (refInWorld.dy * newScale);
@@ -399,8 +416,6 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   Future<void> _updateDrawables() async {
     _updateState = _UpdateState.running;
     while (_updateState == _UpdateState.running) {
-      int pointsCount = 0;
-
       for (DrawableLayer drawableLayer in _drawableLayers) {
         if (_updateState != _UpdateState.running) {
           break;
@@ -428,10 +443,6 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
                 scale: _scale,
                 simplifier: IntegerSimplifier(),
               );
-            }
-
-            if (drawableFeature.drawable != null) {
-              pointsCount += drawableFeature.drawable!.pointsCount;
             }
           }
           if (_updateState != _UpdateState.running) {

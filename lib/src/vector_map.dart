@@ -18,7 +18,7 @@ class VectorMap extends StatefulWidget {
     this.controller,
     this.color,
     this.highlightRule,
-    this.hoverListener,
+    this.onHighlightChanged,
     this.onFeaturePress,
     this.addons,
     this.placeHolder,
@@ -43,7 +43,7 @@ class VectorMap extends StatefulWidget {
   final HighlightRule? highlightRule;
 
   /// Callback if feature highlighted
-  final HighlightListener? hoverListener;
+  final HighlightListener? onHighlightChanged;
 
   /// Callback any feature pressed
   final FeaturePressListener? onFeaturePress;
@@ -253,7 +253,7 @@ class _VectorMapState extends State<VectorMap> {
     final worldCoordinate =
         MatrixUtils.transformPoint(canvasToWorld, localPosition);
     MapFeature? feature;
-    MapSingleHighlight? hoverHighlightRule;
+    MapSingleHighlight? highlightSelected;
 
     for (int layerIndex = _controller.layersCount - 1;
         layerIndex >= 0;
@@ -266,7 +266,7 @@ class _VectorMapState extends State<VectorMap> {
         feature = drawableFeature.feature;
         final layer = drawableLayer.layer;
 
-        hoverHighlightRule = MapSingleHighlight(
+        highlightSelected = MapSingleHighlight(
           layerId: layer.id,
           drawableFeature: drawableFeature,
         );
@@ -279,8 +279,11 @@ class _VectorMapState extends State<VectorMap> {
       widget.onFeaturePress?.call(feature);
     }
 
-    if (_controller.highlight != hoverHighlightRule) {
-      _updateHighlight(hoverHighlightRule);
+    if (_controller.highlight != highlightSelected) {
+      _updateHighlight(
+        highlight: highlightSelected,
+        offset: localPosition,
+      );
     }
   }
 
@@ -304,14 +307,17 @@ class _VectorMapState extends State<VectorMap> {
     return null;
   }
 
-  void _updateHighlight(MapSingleHighlight? hoverHighlightRule) {
-    if (hoverHighlightRule != null) {
-      _controller.setHighlight(hoverHighlightRule);
+  void _updateHighlight({MapSingleHighlight? highlight, Offset? offset}) {
+    if (highlight != null) {
+      _controller.setHighlight(highlight);
     } else if (_controller.barrierDismissibleHighlight) {
       _controller.clearHighlight();
     }
 
-    widget.hoverListener?.call(hoverHighlightRule?.drawableFeature?.feature);
+    widget.onHighlightChanged?.call(
+      highlight?.drawableFeature?.feature,
+      offset,
+    );
   }
 }
 
@@ -351,4 +357,4 @@ typedef FeaturePressListener = void Function(MapFeature feature);
 
 typedef HighlightRule = bool Function(MapFeature feature);
 
-typedef HighlightListener = void Function(MapFeature? feature);
+typedef HighlightListener = void Function(MapFeature? feature, Offset? offset);
