@@ -24,8 +24,8 @@ class VectorMap extends StatefulWidget {
     this.placeHolder,
     this.lowQualityMode,
     this.borderColor = Colors.black54,
-    this.borderThickness = 1,
-    this.layersPadding = const EdgeInsets.all(8),
+    this.borderThickness = 0,
+    this.layersPadding = EdgeInsets.zero,
   }) : super(key: key);
 
   /// The Controller

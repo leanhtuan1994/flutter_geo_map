@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'data/map_data_source.dart';
 import 'data/map_feature.dart';
 import 'data/map_layer.dart';
 import 'draw_utils.dart';
@@ -9,7 +7,6 @@ import 'drawable/drawable_feature.dart';
 import 'drawable/drawable_layer.dart';
 import 'drawable/drawable_layer_chunk.dart';
 import 'map_highlight.dart';
-import 'theme/map_highlight_theme.dart';
 import 'theme/map_theme.dart';
 import 'vector_map_controller.dart';
 
@@ -120,11 +117,11 @@ class MapPainter extends CustomPainter {
     for (int layerIndex = 0;
         layerIndex < controller.layersCount;
         layerIndex++) {
-      DrawableLayer drawableLayer = controller.getDrawableLayer(layerIndex);
-      MapLayer layer = drawableLayer.layer;
-      MapDataSource dataSource = layer.dataSource;
-      MapTheme theme = layer.theme;
-      MapHighlightTheme? highlightTheme = layer.highlightTheme;
+      final drawableLayer = controller.getDrawableLayer(layerIndex);
+      final layer = drawableLayer.layer;
+      final dataSource = layer.dataSource;
+      final theme = layer.theme;
+      final highlightTheme = layer.highlightTheme;
       if (theme.labelVisibility != null ||
           (highlightTheme != null && highlightTheme.labelVisibility != null)) {
         for (DrawableLayerChunk chunk in drawableLayer.chunks) {
@@ -134,24 +131,34 @@ class MapPainter extends CustomPainter {
             Drawable? drawable = drawableFeature.drawable;
             if (drawable != null && drawable.visible && feature.label != null) {
               LabelVisibility? labelVisibility;
+              BackgroundLabelVisibility? backgroundVisibility;
               if (highlight != null &&
                   highlight.layerId == layer.id &&
                   highlight.applies(feature) &&
                   highlightTheme != null &&
                   highlightTheme.labelVisibility != null) {
                 labelVisibility = highlightTheme.labelVisibility;
+                backgroundVisibility = highlightTheme.backgroundLabelVisibility;
               } else {
                 labelVisibility = theme.labelVisibility;
+                backgroundVisibility = theme.backgroundLabelVisibility;
               }
+
+              backgroundVisibility ??= theme.backgroundLabelVisibility;
+
               if (labelVisibility != null && labelVisibility(feature)) {
                 LabelStyleBuilder? labelStyleBuilder;
-                MapHighlightTheme? highlightTheme;
-                if (highlight != null && highlight.applies(feature)) {
-                  highlightTheme = layer.highlightTheme;
-                  if (highlightTheme != null) {
-                    labelStyleBuilder = highlightTheme.labelStyleBuilder;
-                  }
+                BackgroundLabelBuilder? backgroundLabelBuilder;
+                // MapHighlightTheme? highlightTheme;
+
+                if (highlight != null &&
+                    highlight.applies(feature) &&
+                    highlightTheme != null) {
+                  labelStyleBuilder = highlightTheme.labelStyleBuilder;
+                  backgroundLabelBuilder =
+                      highlightTheme.backgroundLabelBuilder;
                 }
+
                 final featureColor = MapTheme.getFeatureColor(
                   dataSource,
                   feature,
@@ -161,12 +168,23 @@ class MapPainter extends CustomPainter {
 
                 labelStyleBuilder ??= theme.labelStyleBuilder;
 
+                backgroundLabelBuilder ??= theme.backgroundLabelBuilder;
+
+                bool isShowBackground = false;
+
+                if (backgroundVisibility != null &&
+                    backgroundVisibility(feature)) {
+                  isShowBackground = true;
+                }
+
                 _drawLabel(
-                  canvas,
-                  feature,
-                  drawable,
-                  featureColor,
-                  labelStyleBuilder,
+                  canvas: canvas,
+                  feature: feature,
+                  drawable: drawable,
+                  featureColor: featureColor,
+                  labelStyleBuilder: labelStyleBuilder,
+                  isShowBackground: isShowBackground,
+                  backgroundLabelBuilder: backgroundLabelBuilder,
                 );
               }
             }
@@ -176,17 +194,25 @@ class MapPainter extends CustomPainter {
     }
   }
 
-  void _drawHighlightContour(Canvas canvas, DrawableLayer drawableLayer,
-      VectorMapController controller) {
-    MapHighlight? highlight = controller.highlight;
-    Color? color = MapTheme.getContourColor(
-        drawableLayer.layer.theme, drawableLayer.layer.highlightTheme);
+  void _drawHighlightContour(
+    Canvas canvas,
+    DrawableLayer drawableLayer,
+    VectorMapController controller,
+  ) {
+    final highlight = controller.highlight;
+
+    final color = MapTheme.getContourColor(
+      drawableLayer.layer.theme,
+      drawableLayer.layer.highlightTheme,
+    );
+
     if (color != null) {
       final paint = Paint()
         ..style = PaintingStyle.stroke
         ..color = color
         ..strokeWidth = controller.contourThickness / controller.scale
         ..isAntiAlias = true;
+
       if (highlight is MapSingleHighlight) {
         DrawableFeature? drawableFeature = highlight.drawableFeature;
         Drawable? drawable = drawableFeature?.drawable;
@@ -206,22 +232,43 @@ class MapPainter extends CustomPainter {
     }
   }
 
-  void _drawLabel(Canvas canvas, MapFeature feature, Drawable drawable,
-      Color featureColor, LabelStyleBuilder? labelStyleBuilder) {
-    Color labelColor = _labelColorFrom(featureColor);
+  void _drawLabel({
+    required Canvas canvas,
+    required MapFeature feature,
+    required Drawable drawable,
+    required Color featureColor,
+    LabelStyleBuilder? labelStyleBuilder,
+    bool isShowBackground = false,
+    BackgroundLabelBuilder? backgroundLabelBuilder,
+  }) {
+    final labelColor = _labelColorFrom(featureColor);
 
     TextStyle? labelStyle;
     if (labelStyleBuilder != null) {
       labelStyle = labelStyleBuilder(feature, featureColor, labelColor);
     }
+
     labelStyle ??= TextStyle(
       color: labelColor,
       fontSize: 11,
     );
 
-    Rect bounds = MatrixUtils.transformRect(
-        controller.worldToCanvas, drawable.getBounds());
-    _drawText(canvas, bounds.center, feature.label!, labelStyle);
+    final bounds = MatrixUtils.transformRect(
+      controller.worldToCanvas,
+      drawable.getBounds(),
+    );
+
+    final backgroundStyle =
+        backgroundLabelBuilder?.call(feature) ?? const BackgroundLabelStyle();
+
+    _drawText(
+      canvas,
+      bounds.centerRight,
+      feature.label!,
+      labelStyle,
+      isShowBackground: isShowBackground,
+      backgroundStyle: backgroundStyle,
+    );
   }
 
   Color _labelColorFrom(Color featureColor) {
@@ -233,11 +280,18 @@ class MapPainter extends CustomPainter {
   }
 
   void _drawText(
-      Canvas canvas, Offset center, String text, TextStyle textStyle) {
+    Canvas canvas,
+    Offset center,
+    String text,
+    TextStyle textStyle, {
+    bool isShowBackground = false,
+    BackgroundLabelStyle backgroundStyle = const BackgroundLabelStyle(),
+  }) {
     final textSpan = TextSpan(
       text: text,
       style: textStyle,
     );
+
     final textPainter = TextPainter(
       text: textSpan,
       textDirection: TextDirection.ltr,
@@ -245,9 +299,73 @@ class MapPainter extends CustomPainter {
 
     textPainter.layout(minWidth: 0);
 
-    double xCenter = center.dx - (textPainter.width / 2);
-    double yCenter = center.dy - (textPainter.height / 2);
+    final textWidth = textPainter.width;
+    final textHeight = textPainter.height;
+
+    final xCenter = center.dx -
+        (textWidth < 50
+            ? textWidth / 2
+            : textWidth < 100
+                ? textWidth / 3
+                : -10);
+    final yCenter = center.dy - (textHeight / 2);
+
+    if (isShowBackground) {
+      _drawBackgroundText(
+        canvas,
+        Size(
+          textPainter.width,
+          textPainter.height,
+        ),
+        Offset(xCenter, yCenter),
+        backgroundStyle,
+      );
+    }
+
     textPainter.paint(canvas, Offset(xCenter, yCenter));
+  }
+
+  void _drawBackgroundText(
+    Canvas canvas,
+    Size size,
+    Offset offset,
+    BackgroundLabelStyle style,
+  ) {
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = style.color;
+
+    final verticalPadding = style.verticalPadding;
+    final horizontalPadding = style.horizontalPadding;
+
+    canvas.drawRRect(
+      RRect.fromRectAndCorners(
+        Rect.fromLTWH(
+          offset.dx - horizontalPadding,
+          offset.dy - verticalPadding,
+          size.width + (horizontalPadding * 2),
+          size.height + (verticalPadding * 2),
+        ),
+        topLeft: style.radius,
+        topRight: style.radius,
+        bottomLeft: style.radius,
+        bottomRight: style.radius,
+      ),
+      paint,
+    );
+
+    Path path = Path();
+
+    final startX = offset.dx + 2;
+    final startY = offset.dy + size.height + verticalPadding / 2;
+    path.moveTo(startX, startY);
+    path.lineTo(startX + style.arrowRadius, startY + style.arrowRadius);
+    path.lineTo(startX + style.arrowRadius * 2, startY);
+    path.lineTo(startX, startY);
+
+    path.close();
+
+    canvas.drawPath(path, paint);
   }
 
   @override

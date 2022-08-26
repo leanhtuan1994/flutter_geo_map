@@ -12,15 +12,20 @@ class MapValueTheme extends MapTheme {
     LabelVisibility? labelVisibility,
     LabelStyleBuilder? labelStyleBuilder,
     MarkerBuilder? markerBuilder,
+    BackgroundLabelVisibility? backgroundLabelVisibility,
+    BackgroundLabelBuilder? backgroundLabelBuilder,
     required this.key,
     Map<dynamic, Color>? colors,
   })  : _colors = colors,
         super(
-            color: color,
-            contourColor: contourColor,
-            labelVisibility: labelVisibility,
-            labelStyleBuilder: labelStyleBuilder,
-            markerBuilder: markerBuilder);
+          color: color,
+          contourColor: contourColor,
+          labelVisibility: labelVisibility,
+          labelStyleBuilder: labelStyleBuilder,
+          markerBuilder: markerBuilder,
+          backgroundLabelBuilder: backgroundLabelBuilder,
+          backgroundLabelVisibility: backgroundLabelVisibility,
+        );
 
   final String key;
   final Map<dynamic, Color>? _colors;

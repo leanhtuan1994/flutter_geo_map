@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../data/map_data_source.dart';
 import '../data/map_feature.dart';
 import '../drawable/circle_marker.dart';
@@ -40,6 +41,8 @@ class MapTheme {
     this.contourColor,
     this.labelVisibility,
     this.labelStyleBuilder,
+    this.backgroundLabelVisibility,
+    this.backgroundLabelBuilder,
     MarkerBuilder? markerBuilder,
   })  : _color = color,
         markerBuilder = markerBuilder ?? CircleMakerBuilder.fixed();
@@ -49,6 +52,8 @@ class MapTheme {
   final LabelVisibility? labelVisibility;
   final LabelStyleBuilder? labelStyleBuilder;
   final MarkerBuilder markerBuilder;
+  final BackgroundLabelVisibility? backgroundLabelVisibility;
+  final BackgroundLabelBuilder? backgroundLabelBuilder;
 
   /// Indicates whether the theme has any value set.
   bool hasValue() {
@@ -65,3 +70,27 @@ typedef LabelVisibility = bool Function(MapFeature feature);
 /// The label style builder.
 typedef LabelStyleBuilder = TextStyle Function(
     MapFeature feature, Color featureColor, Color labelColor);
+
+/// Defines the label background visibility of a [MapFeature]
+typedef BackgroundLabelVisibility = bool Function(MapFeature feature);
+
+/// Defines the label background style visibility of a [MapFeature]
+typedef BackgroundLabelBuilder = BackgroundLabelStyle Function(
+  MapFeature feature,
+);
+
+class BackgroundLabelStyle {
+  final Color color;
+  final Radius radius;
+  final double horizontalPadding;
+  final double verticalPadding;
+  final double arrowRadius;
+
+  const BackgroundLabelStyle({
+    this.color = Colors.white,
+    this.radius = const Radius.circular(24),
+    this.horizontalPadding = 8,
+    this.verticalPadding = 4,
+    this.arrowRadius = 8,
+  });
+}
