@@ -14,6 +14,7 @@ class MapHighlightTheme {
     this.overlayContour = false,
     this.backgroundLabelBuilder,
     this.backgroundLabelVisibility,
+    this.labelMarginBuilder,
   });
 
   final Color? color;
@@ -24,6 +25,8 @@ class MapHighlightTheme {
 
   final BackgroundLabelVisibility? backgroundLabelVisibility;
   final BackgroundLabelBuilder? backgroundLabelBuilder;
+
+  LabelMarginBuilder? labelMarginBuilder;
 
   final bool overlayContour;
 

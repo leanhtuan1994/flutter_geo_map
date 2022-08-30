@@ -43,6 +43,7 @@ class MapTheme {
     this.labelStyleBuilder,
     this.backgroundLabelVisibility,
     this.backgroundLabelBuilder,
+    this.labelMarginBuilder,
     MarkerBuilder? markerBuilder,
   })  : _color = color,
         markerBuilder = markerBuilder ?? CircleMakerBuilder.fixed();
@@ -54,6 +55,7 @@ class MapTheme {
   final MarkerBuilder markerBuilder;
   final BackgroundLabelVisibility? backgroundLabelVisibility;
   final BackgroundLabelBuilder? backgroundLabelBuilder;
+  final LabelMarginBuilder? labelMarginBuilder;
 
   /// Indicates whether the theme has any value set.
   bool hasValue() {
@@ -73,6 +75,8 @@ typedef LabelStyleBuilder = TextStyle Function(
 
 /// Defines the label background visibility of a [MapFeature]
 typedef BackgroundLabelVisibility = bool Function(MapFeature feature);
+
+typedef LabelMarginBuilder = Offset Function(MapFeature feature);
 
 /// Defines the label background style visibility of a [MapFeature]
 typedef BackgroundLabelBuilder = BackgroundLabelStyle Function(

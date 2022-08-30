@@ -1,7 +1,6 @@
 import 'dart:collection';
 import 'dart:ui';
 
-import '../data/map_feature.dart';
 import '../data/map_layer.dart';
 import 'drawable_layer_chunk.dart';
 

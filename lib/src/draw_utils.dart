@@ -70,6 +70,7 @@ class DrawUtils {
     MapHighlight? highlightRule,
   }) {
     final theme = layer.theme;
+    final layerContour = layer.contourThickness;
 
     late Color contourColor;
     if (highlightRule != null && layer.highlightTheme?.contourColor != null) {
@@ -81,7 +82,7 @@ class DrawUtils {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..color = contourColor
-      ..strokeWidth = contourThickness / scale
+      ..strokeWidth = (layerContour ?? contourThickness) / scale
       ..isAntiAlias = antiAlias;
 
     for (int index = 0; index < chunk.length; index++) {

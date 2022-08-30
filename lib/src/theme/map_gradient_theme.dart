@@ -16,24 +16,27 @@ import 'map_theme.dart';
 /// If the [max] is set, all larger values will be displayed with the last
 /// gradient color.
 class MapGradientTheme extends MapTheme {
-  MapGradientTheme(
-      {Color? color,
-      Color? contourColor,
-      LabelVisibility? labelVisibility,
-      LabelStyleBuilder? labelStyleBuilder,
-      MarkerBuilder? markerBuilder,
-      double? min,
-      double? max,
-      required this.key,
-      required this.colors})
-      : _max = max,
+  MapGradientTheme({
+    Color? color,
+    Color? contourColor,
+    LabelVisibility? labelVisibility,
+    LabelStyleBuilder? labelStyleBuilder,
+    MarkerBuilder? markerBuilder,
+    double? min,
+    double? max,
+    required this.key,
+    required this.colors,
+    LabelMarginBuilder? labelMarginBuilder,
+  })  : _max = max,
         _min = min,
         super(
-            color: color,
-            contourColor: contourColor,
-            labelVisibility: labelVisibility,
-            labelStyleBuilder: labelStyleBuilder,
-            markerBuilder: markerBuilder) {
+          color: color,
+          contourColor: contourColor,
+          labelVisibility: labelVisibility,
+          labelStyleBuilder: labelStyleBuilder,
+          markerBuilder: markerBuilder,
+          labelMarginBuilder: labelMarginBuilder,
+        ) {
     if (colors.length < 2) {
       throw VectorMapError('At least 2 colors are required for the gradient.');
     }

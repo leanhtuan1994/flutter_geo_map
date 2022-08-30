@@ -14,6 +14,7 @@ class MapValueTheme extends MapTheme {
     MarkerBuilder? markerBuilder,
     BackgroundLabelVisibility? backgroundLabelVisibility,
     BackgroundLabelBuilder? backgroundLabelBuilder,
+    LabelMarginBuilder? labelMarginBuilder,
     required this.key,
     Map<dynamic, Color>? colors,
   })  : _colors = colors,
@@ -25,6 +26,7 @@ class MapValueTheme extends MapTheme {
           markerBuilder: markerBuilder,
           backgroundLabelBuilder: backgroundLabelBuilder,
           backgroundLabelVisibility: backgroundLabelVisibility,
+          labelMarginBuilder: labelMarginBuilder,
         );
 
   final String key;

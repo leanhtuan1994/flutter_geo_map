@@ -19,6 +19,7 @@ class MapRuleTheme extends MapTheme {
     required List<ColorRule> colorRules,
     BackgroundLabelVisibility? backgroundLabelVisibility,
     BackgroundLabelBuilder? backgroundLabelBuilder,
+    LabelMarginBuilder? labelMarginBuilder,
   })  : _colorRules = colorRules,
         super(
           color: color,
@@ -28,6 +29,7 @@ class MapRuleTheme extends MapTheme {
           markerBuilder: markerBuilder,
           backgroundLabelBuilder: backgroundLabelBuilder,
           backgroundLabelVisibility: backgroundLabelVisibility,
+          labelMarginBuilder: labelMarginBuilder,
         );
 
   final List<ColorRule> _colorRules;

@@ -149,6 +149,7 @@ class MapPainter extends CustomPainter {
               if (labelVisibility != null && labelVisibility(feature)) {
                 LabelStyleBuilder? labelStyleBuilder;
                 BackgroundLabelBuilder? backgroundLabelBuilder;
+                LabelMarginBuilder? labelMarginBuilder;
                 // MapHighlightTheme? highlightTheme;
 
                 if (highlight != null &&
@@ -157,6 +158,7 @@ class MapPainter extends CustomPainter {
                   labelStyleBuilder = highlightTheme.labelStyleBuilder;
                   backgroundLabelBuilder =
                       highlightTheme.backgroundLabelBuilder;
+                  labelMarginBuilder = highlightTheme.labelMarginBuilder;
                 }
 
                 final featureColor = MapTheme.getFeatureColor(
@@ -169,6 +171,7 @@ class MapPainter extends CustomPainter {
                 labelStyleBuilder ??= theme.labelStyleBuilder;
 
                 backgroundLabelBuilder ??= theme.backgroundLabelBuilder;
+                labelMarginBuilder ??= theme.labelMarginBuilder;
 
                 bool isShowBackground = false;
 
@@ -185,6 +188,7 @@ class MapPainter extends CustomPainter {
                   labelStyleBuilder: labelStyleBuilder,
                   isShowBackground: isShowBackground,
                   backgroundLabelBuilder: backgroundLabelBuilder,
+                  labelMarginBuilder: labelMarginBuilder,
                 );
               }
             }
@@ -240,6 +244,7 @@ class MapPainter extends CustomPainter {
     LabelStyleBuilder? labelStyleBuilder,
     bool isShowBackground = false,
     BackgroundLabelBuilder? backgroundLabelBuilder,
+    LabelMarginBuilder? labelMarginBuilder,
   }) {
     final labelColor = _labelColorFrom(featureColor);
 
@@ -261,6 +266,8 @@ class MapPainter extends CustomPainter {
     final backgroundStyle =
         backgroundLabelBuilder?.call(feature) ?? const BackgroundLabelStyle();
 
+    final marginOffset = labelMarginBuilder?.call(feature);
+
     _drawText(
       canvas,
       bounds.centerRight,
@@ -268,6 +275,7 @@ class MapPainter extends CustomPainter {
       labelStyle,
       isShowBackground: isShowBackground,
       backgroundStyle: backgroundStyle,
+      margin: marginOffset,
     );
   }
 
@@ -286,6 +294,7 @@ class MapPainter extends CustomPainter {
     TextStyle textStyle, {
     bool isShowBackground = false,
     BackgroundLabelStyle backgroundStyle = const BackgroundLabelStyle(),
+    Offset? margin,
   }) {
     final textSpan = TextSpan(
       text: text,
@@ -302,13 +311,19 @@ class MapPainter extends CustomPainter {
     final textWidth = textPainter.width;
     final textHeight = textPainter.height;
 
-    final xCenter = center.dx -
+    double xCenter = center.dx -
         (textWidth < 50
             ? textWidth / 2
             : textWidth < 100
                 ? textWidth / 3
                 : -10);
-    final yCenter = center.dy - (textHeight / 2);
+
+    double yCenter = center.dy - (textHeight / 2);
+
+    if (margin != null) {
+      xCenter += margin.dx;
+      yCenter += margin.dy;
+    }
 
     if (isShowBackground) {
       _drawBackgroundText(

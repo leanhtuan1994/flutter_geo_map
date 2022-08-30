@@ -69,8 +69,6 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   double _scale;
   double get scale => _scale;
 
-  double _fitScale = 1.0;
-
   double _translateX = 0;
   double get translateX => _translateX;
 
@@ -262,7 +260,6 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
       final scaleX = canvasSize.width / _worldBounds!.width;
       final scaleY = canvasSize.height / _worldBounds!.height;
       _scale = _limitScale(math.min(scaleX, scaleY));
-      _fitScale = _scale;
 
       /// Moving to center
       _translateX =

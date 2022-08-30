@@ -12,6 +12,7 @@ class MapLayer {
     MapTheme? theme,
     this.highlightTheme,
     this.name,
+    this.contourThickness,
   })  : id = id ?? _randomId,
         theme = theme ?? MapTheme();
 
@@ -20,6 +21,7 @@ class MapLayer {
   final MapTheme theme;
   final MapHighlightTheme? highlightTheme;
   final String? name;
+  final double? contourThickness;
 
   /// Indicates if the hover is drawable, if there is any highlight theme and
   /// if it has a set value.
