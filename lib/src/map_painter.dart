@@ -132,6 +132,7 @@ class MapPainter extends CustomPainter {
             if (drawable != null && drawable.visible && feature.label != null) {
               LabelVisibility? labelVisibility;
               BackgroundLabelVisibility? backgroundVisibility;
+
               if (highlight != null &&
                   highlight.layerId == layer.id &&
                   highlight.applies(feature) &&
@@ -150,6 +151,8 @@ class MapPainter extends CustomPainter {
                 LabelStyleBuilder? labelStyleBuilder;
                 BackgroundLabelBuilder? backgroundLabelBuilder;
                 LabelMarginBuilder? labelMarginBuilder;
+                LabelBuilder? labelBuilder;
+
                 // MapHighlightTheme? highlightTheme;
 
                 if (highlight != null &&
@@ -159,6 +162,7 @@ class MapPainter extends CustomPainter {
                   backgroundLabelBuilder =
                       highlightTheme.backgroundLabelBuilder;
                   labelMarginBuilder = highlightTheme.labelMarginBuilder;
+                  labelBuilder = highlightTheme.labelBuilder;
                 }
 
                 final featureColor = MapTheme.getFeatureColor(
@@ -172,6 +176,7 @@ class MapPainter extends CustomPainter {
 
                 backgroundLabelBuilder ??= theme.backgroundLabelBuilder;
                 labelMarginBuilder ??= theme.labelMarginBuilder;
+                labelBuilder ??= theme.labelBuilder;
 
                 bool isShowBackground = false;
 
@@ -189,6 +194,7 @@ class MapPainter extends CustomPainter {
                   isShowBackground: isShowBackground,
                   backgroundLabelBuilder: backgroundLabelBuilder,
                   labelMarginBuilder: labelMarginBuilder,
+                  labelBuilder: labelBuilder,
                 );
               }
             }
@@ -245,12 +251,18 @@ class MapPainter extends CustomPainter {
     bool isShowBackground = false,
     BackgroundLabelBuilder? backgroundLabelBuilder,
     LabelMarginBuilder? labelMarginBuilder,
+    LabelBuilder? labelBuilder,
   }) {
     final labelColor = _labelColorFrom(featureColor);
 
     TextStyle? labelStyle;
     if (labelStyleBuilder != null) {
       labelStyle = labelStyleBuilder(feature, featureColor, labelColor);
+    }
+
+    String? text = labelBuilder?.call(feature);
+    if (text == null || text.trim().isEmpty) {
+      text = feature.label!;
     }
 
     labelStyle ??= TextStyle(
@@ -271,7 +283,7 @@ class MapPainter extends CustomPainter {
     _drawText(
       canvas,
       bounds.centerRight,
-      feature.label!,
+      text,
       labelStyle,
       isShowBackground: isShowBackground,
       backgroundStyle: backgroundStyle,
@@ -315,8 +327,8 @@ class MapPainter extends CustomPainter {
         (textWidth < 50
             ? textWidth / 2
             : textWidth < 100
-                ? textWidth / 3
-                : -10);
+                ? textWidth / 4
+                : 0);
 
     double yCenter = center.dy - (textHeight / 2);
 

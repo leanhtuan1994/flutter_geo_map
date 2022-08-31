@@ -17,6 +17,7 @@ class MapValueTheme extends MapTheme {
     LabelMarginBuilder? labelMarginBuilder,
     required this.key,
     Map<dynamic, Color>? colors,
+    LabelBuilder? labelBuilder,
   })  : _colors = colors,
         super(
           color: color,
@@ -27,6 +28,7 @@ class MapValueTheme extends MapTheme {
           backgroundLabelBuilder: backgroundLabelBuilder,
           backgroundLabelVisibility: backgroundLabelVisibility,
           labelMarginBuilder: labelMarginBuilder,
+          labelBuilder: labelBuilder,
         );
 
   final String key;
