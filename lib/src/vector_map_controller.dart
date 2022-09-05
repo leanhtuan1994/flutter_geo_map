@@ -17,6 +17,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     this.maxScale = 30000,
     this.minScale = 0.1,
     this.barrierDismissibleHighlight = true,
+    this.isDrawBuffer = false,
   })  : _mode = mode,
         _scale = minScale {
     layers?.forEach(_addLayer);
@@ -88,8 +89,9 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   MapHighlight? _highlight;
   MapHighlight? get highlight => _highlight;
 
+  final bool isDrawBuffer;
   bool _drawBuffers = false;
-  bool get drawBuffers => _drawBuffers;
+  bool get drawBuffers => isDrawBuffer && _drawBuffers;
 
   int _currentDrawablesUpdateTicket = 0;
 
@@ -502,8 +504,8 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     required MapLayer layer,
     required Size canvasSize,
   }) async {
-    ui.PictureRecorder recorder = ui.PictureRecorder();
-    Canvas canvas = Canvas(
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(
       recorder,
       Rect.fromPoints(Offset.zero, Offset(canvasSize.width, canvasSize.height)),
     );
@@ -522,7 +524,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
 
     canvas.restore();
 
-    ui.Picture picture = recorder.endRecording();
+    final picture = recorder.endRecording();
     return picture.toImage(canvasSize.width.ceil(), canvasSize.height.ceil());
   }
 
