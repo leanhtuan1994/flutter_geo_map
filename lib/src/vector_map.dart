@@ -275,6 +275,14 @@ class _VectorMapState extends State<VectorMap> {
       }
     }
 
+    final bgRect = _controller.bgRect;
+
+    for (final bg in bgRect) {
+      if (bg.rect.contains(localPosition)) {
+        widget.onFeaturePress?.call(bg.mapFeature);
+      }
+    }
+
     if (feature != null) {
       widget.onFeaturePress?.call(feature);
     }

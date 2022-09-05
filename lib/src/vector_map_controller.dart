@@ -5,17 +5,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
-import 'data/map_layer.dart';
+import '../vector_map.dart';
 import 'draw_utils.dart';
-import 'drawable/drawable_builder.dart';
-import 'drawable/drawable_feature.dart';
-import 'drawable/drawable_layer.dart';
-import 'drawable/drawable_layer_chunk.dart';
-import 'error.dart';
-import 'map_highlight.dart';
-import 'simplifier.dart';
-import 'vector_map_api.dart';
-import 'vector_map_mode.dart';
 
 class VectorMapController extends ChangeNotifier implements VectorMapApi {
   VectorMapController({
@@ -51,6 +42,17 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
 
   final HashMap<int, MapLayer> _layerIdAndLayer = HashMap<int, MapLayer>();
   final List<DrawableLayer> _drawableLayers = [];
+
+  final HashMap<int, DrawableLabelData> _bgIdAndRect =
+      HashMap<int, DrawableLabelData>();
+
+  List<DrawableLabelData> get bgRect {
+    final List<DrawableLabelData> bgRect = [];
+    _bgIdAndRect.forEach((key, value) {
+      bgRect.add(value);
+    });
+    return bgRect;
+  }
 
   bool _rebuildSimplifiedGeometry = true;
 
@@ -122,6 +124,15 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
 
   void _afterLayersChange() {
     _worldBounds = DrawableLayer.boundsOf(_drawableLayers);
+  }
+
+  void addBgRect({required DrawableLabelData data, required int id}) {
+    _addRect(data, id);
+    //notifyListeners();
+  }
+
+  void _addRect(DrawableLabelData data, int id) {
+    _bgIdAndRect[id] = data;
   }
 
   /// Gets the count of layers.
@@ -559,3 +570,13 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
 }
 
 enum _UpdateState { stopped, running, canceling, restarting }
+
+class DrawableLabelData {
+  final ui.Rect rect;
+  final MapFeature mapFeature;
+
+  const DrawableLabelData({
+    required this.rect,
+    required this.mapFeature,
+  });
+}

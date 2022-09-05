@@ -186,6 +186,7 @@ class MapPainter extends CustomPainter {
                 }
 
                 _drawLabel(
+                  index: index,
                   canvas: canvas,
                   feature: feature,
                   drawable: drawable,
@@ -243,6 +244,7 @@ class MapPainter extends CustomPainter {
   }
 
   void _drawLabel({
+    required int index,
     required Canvas canvas,
     required MapFeature feature,
     required Drawable drawable,
@@ -281,6 +283,7 @@ class MapPainter extends CustomPainter {
     final marginOffset = labelMarginBuilder?.call(feature);
 
     _drawText(
+      index,
       canvas,
       bounds.centerRight,
       text,
@@ -288,6 +291,7 @@ class MapPainter extends CustomPainter {
       isShowBackground: isShowBackground,
       backgroundStyle: backgroundStyle,
       margin: marginOffset,
+      feature: feature,
     );
   }
 
@@ -300,14 +304,11 @@ class MapPainter extends CustomPainter {
   }
 
   void _drawText(
-    Canvas canvas,
-    Offset center,
-    String text,
-    TextStyle textStyle, {
-    bool isShowBackground = false,
-    BackgroundLabelStyle backgroundStyle = const BackgroundLabelStyle(),
-    Offset? margin,
-  }) {
+      int index, Canvas canvas, Offset center, String text, TextStyle textStyle,
+      {bool isShowBackground = false,
+      BackgroundLabelStyle backgroundStyle = const BackgroundLabelStyle(),
+      Offset? margin,
+      required MapFeature feature}) {
     final textSpan = TextSpan(
       text: text,
       style: textStyle,
@@ -339,6 +340,7 @@ class MapPainter extends CustomPainter {
 
     if (isShowBackground) {
       _drawBackgroundText(
+        index,
         canvas,
         Size(
           textPainter.width,
@@ -346,18 +348,15 @@ class MapPainter extends CustomPainter {
         ),
         Offset(xCenter, yCenter),
         backgroundStyle,
+        feature,
       );
     }
 
     textPainter.paint(canvas, Offset(xCenter, yCenter));
   }
 
-  void _drawBackgroundText(
-    Canvas canvas,
-    Size size,
-    Offset offset,
-    BackgroundLabelStyle style,
-  ) {
+  void _drawBackgroundText(int index, Canvas canvas, Size size, Offset offset,
+      BackgroundLabelStyle style, MapFeature feature) {
     final paint = Paint()
       ..style = PaintingStyle.fill
       ..color = style.color;
@@ -365,14 +364,21 @@ class MapPainter extends CustomPainter {
     final verticalPadding = style.verticalPadding;
     final horizontalPadding = style.horizontalPadding;
 
+    final rect = Rect.fromLTWH(
+      offset.dx - horizontalPadding,
+      offset.dy - verticalPadding,
+      size.width + (horizontalPadding * 2),
+      size.height + (verticalPadding * 2),
+    );
+
+    controller.addBgRect(
+      data: DrawableLabelData(rect: rect, mapFeature: feature),
+      id: index,
+    );
+
     canvas.drawRRect(
       RRect.fromRectAndCorners(
-        Rect.fromLTWH(
-          offset.dx - horizontalPadding,
-          offset.dy - verticalPadding,
-          size.width + (horizontalPadding * 2),
-          size.height + (verticalPadding * 2),
-        ),
+        rect,
         topLeft: style.radius,
         topRight: style.radius,
         bottomLeft: style.radius,
