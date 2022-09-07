@@ -296,7 +296,8 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     }
   }
 
-  void moveTargetToCenter({required Offset locationOnCanvas}) {
+  void moveTargetToCenter(
+      {required Offset locationOnCanvas, double? newScale}) {
     if (_lastCanvasSize != null) {
       final dx = _lastCanvasSize!.width / 2;
       final dy = _lastCanvasSize!.height / 2;
@@ -305,6 +306,9 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
       final diffY = locationOnCanvas.dy - dy;
 
       translate(_translateX - diffX, _translateY - diffY);
+    }
+    if (newScale != null) {
+      zoom(locationOnCanvas, newScale);
     }
   }
 
