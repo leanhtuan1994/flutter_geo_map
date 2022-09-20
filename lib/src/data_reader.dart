@@ -232,13 +232,21 @@ class MapFeatureReader extends _GeoJsonReaderBase {
   final String? colorKey;
   final ColorValueFormat colorValueFormat;
 
-  Future<List<MapFeature>> read(String geoJson) async {
+  Future<List<MapFeature>> read(
+    String geoJson, {
+    String? filterKey,
+    String? filterValue,
+  }) async {
     Map<String, dynamic> map = json.decode(geoJson);
-    await _readMap(map);
+    await _readMap(map, filterKey: filterKey, filterValue: filterValue);
     return _list;
   }
 
-  Future<void> _readMap(Map<String, dynamic> map) async {
+  Future<void> _readMap(
+    Map<String, dynamic> map, {
+    String? filterKey,
+    String? filterValue,
+  }) async {
     _checkKeyOn(map, key: Keys.TYPE);
 
     final type = _generateMapType(map);
@@ -248,14 +256,22 @@ class MapFeatureReader extends _GeoJsonReaderBase {
         _checkKeyOn(map, key: Keys.FEATURES);
         //TODO check if it is a Map?
         for (Map<String, dynamic> featureMap in map[Keys.FEATURES]) {
-          _readFeature(featureMap);
+          _readFeature(
+            featureMap,
+            filterKey: filterKey,
+            filterValue: filterValue,
+          );
         }
         break;
       case MapType.GeometryCollection:
         //TODO handle geometry collection type
         break;
       case MapType.Feature:
-        _readFeature(map);
+        _readFeature(
+          map,
+          filterKey: filterKey,
+          filterValue: filterValue,
+        );
         break;
 
       default:
@@ -265,7 +281,11 @@ class MapFeatureReader extends _GeoJsonReaderBase {
     }
   }
 
-  void _readFeature(Map<String, dynamic> map) {
+  void _readFeature(
+    Map<String, dynamic> map, {
+    String? filterKey,
+    String? filterValue,
+  }) {
     _checkKeyOn(map, key: Keys.GEOMETRY);
     Map<String, dynamic> geometryMap = map[Keys.GEOMETRY];
     MapGeometry geometry = _readGeometry(geometryMap, hasParent: true);
@@ -275,7 +295,17 @@ class MapFeatureReader extends _GeoJsonReaderBase {
       Map<String, dynamic> propertiesMap = map[Keys.PROPERTIES];
       properties = _readProperties(propertiesMap);
     }
-    _addFeature(geometry: geometry, properties: properties);
+
+    if (filterKey != null && filterValue != null) {
+      if (properties != null &&
+          properties.values != null &&
+          properties.values!.containsKey(filterKey) &&
+          properties.values![filterKey] == filterValue) {
+        _addFeature(geometry: geometry, properties: properties);
+      }
+    } else {
+      _addFeature(geometry: geometry, properties: properties);
+    }
   }
 
   _Properties _readProperties(Map<String, dynamic> map) {

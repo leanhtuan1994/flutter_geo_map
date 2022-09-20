@@ -86,6 +86,8 @@ class MapDataSource {
     List<String>? parseToNumber,
     String? colorKey,
     ColorValueFormat colorValueFormat = ColorValueFormat.hex,
+    String? filterKey,
+    String? filterValue,
   }) async {
     final reader = MapFeatureReader(
       labelKey: labelKey,
@@ -95,7 +97,11 @@ class MapDataSource {
       colorValueFormat: colorValueFormat,
     );
 
-    final features = await reader.read(geoJson);
+    final features = await reader.read(
+      geoJson,
+      filterKey: filterKey,
+      filterValue: filterValue,
+    );
     return fromFeatures(features);
   }
 
