@@ -300,7 +300,7 @@ class MapFeatureReader extends _GeoJsonReaderBase {
       if (properties != null &&
           properties.values != null &&
           properties.values!.containsKey(filterKey) &&
-          properties.values![filterKey] == filterValue) {
+          properties.values![filterKey].toString() == filterValue) {
         _addFeature(geometry: geometry, properties: properties);
       }
     } else {
