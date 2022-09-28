@@ -16,6 +16,7 @@ class MapHighlightTheme {
     this.backgroundLabelVisibility,
     this.labelMarginBuilder,
     this.labelBuilder,
+    this.modifiedCenter = true,
   });
 
   final Color? color;
@@ -26,6 +27,7 @@ class MapHighlightTheme {
 
   final BackgroundLabelVisibility? backgroundLabelVisibility;
   final BackgroundLabelBuilder? backgroundLabelBuilder;
+  final bool modifiedCenter;
 
   LabelMarginBuilder? labelMarginBuilder;
 

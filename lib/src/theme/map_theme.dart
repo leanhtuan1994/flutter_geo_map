@@ -46,6 +46,7 @@ class MapTheme {
     this.labelMarginBuilder,
     this.labelBuilder,
     MarkerBuilder? markerBuilder,
+    this.modifiedCenter = true,
   })  : _color = color,
         markerBuilder = markerBuilder ?? CircleMakerBuilder.fixed();
 
@@ -58,6 +59,7 @@ class MapTheme {
   final BackgroundLabelBuilder? backgroundLabelBuilder;
   final LabelMarginBuilder? labelMarginBuilder;
   final LabelBuilder? labelBuilder;
+  final bool modifiedCenter;
 
   /// Indicates whether the theme has any value set.
   bool hasValue() {

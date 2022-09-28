@@ -152,6 +152,7 @@ class MapPainter extends CustomPainter {
                 BackgroundLabelBuilder? backgroundLabelBuilder;
                 LabelMarginBuilder? labelMarginBuilder;
                 LabelBuilder? labelBuilder;
+                bool? modifiedCenter;
 
                 // MapHighlightTheme? highlightTheme;
 
@@ -163,6 +164,7 @@ class MapPainter extends CustomPainter {
                       highlightTheme.backgroundLabelBuilder;
                   labelMarginBuilder = highlightTheme.labelMarginBuilder;
                   labelBuilder = highlightTheme.labelBuilder;
+                  modifiedCenter = highlightTheme.modifiedCenter;
                 }
 
                 final featureColor = MapTheme.getFeatureColor(
@@ -177,6 +179,7 @@ class MapPainter extends CustomPainter {
                 backgroundLabelBuilder ??= theme.backgroundLabelBuilder;
                 labelMarginBuilder ??= theme.labelMarginBuilder;
                 labelBuilder ??= theme.labelBuilder;
+                modifiedCenter ??= theme.modifiedCenter;
 
                 bool isShowBackground = false;
 
@@ -196,6 +199,7 @@ class MapPainter extends CustomPainter {
                   backgroundLabelBuilder: backgroundLabelBuilder,
                   labelMarginBuilder: labelMarginBuilder,
                   labelBuilder: labelBuilder,
+                  modifiedCenter: modifiedCenter,
                 );
               }
             }
@@ -254,6 +258,7 @@ class MapPainter extends CustomPainter {
     BackgroundLabelBuilder? backgroundLabelBuilder,
     LabelMarginBuilder? labelMarginBuilder,
     LabelBuilder? labelBuilder,
+    bool modifiedCenter = true,
   }) {
     final labelColor = _labelColorFrom(featureColor);
 
@@ -292,6 +297,7 @@ class MapPainter extends CustomPainter {
       backgroundStyle: backgroundStyle,
       margin: marginOffset,
       feature: feature,
+      modifiedCenter: modifiedCenter,
     );
   }
 
@@ -304,11 +310,17 @@ class MapPainter extends CustomPainter {
   }
 
   void _drawText(
-      int index, Canvas canvas, Offset center, String text, TextStyle textStyle,
-      {bool isShowBackground = false,
-      BackgroundLabelStyle backgroundStyle = const BackgroundLabelStyle(),
-      Offset? margin,
-      required MapFeature feature}) {
+    int index,
+    Canvas canvas,
+    Offset center,
+    String text,
+    TextStyle textStyle, {
+    bool isShowBackground = false,
+    BackgroundLabelStyle backgroundStyle = const BackgroundLabelStyle(),
+    Offset? margin,
+    required MapFeature feature,
+    bool modifiedCenter = true,
+  }) {
     final textSpan = TextSpan(
       text: text,
       style: textStyle,
@@ -325,11 +337,13 @@ class MapPainter extends CustomPainter {
     final textHeight = textPainter.height;
 
     double xCenter = center.dx -
-        (textWidth < 50
-            ? textWidth / 2
-            : textWidth < 100
-                ? textWidth / 4
-                : 0);
+        (modifiedCenter
+            ? (textWidth < 50
+                ? textWidth / 2
+                : textWidth < 100
+                    ? textWidth / 4
+                    : 0)
+            : (textWidth / 2));
 
     double yCenter = center.dy - (textHeight / 2);
 

@@ -21,6 +21,7 @@ class MapRuleTheme extends MapTheme {
     BackgroundLabelBuilder? backgroundLabelBuilder,
     LabelMarginBuilder? labelMarginBuilder,
     LabelBuilder? labelBuilder,
+    bool modifiedCenter = true,
   })  : _colorRules = colorRules,
         super(
           color: color,
@@ -32,6 +33,7 @@ class MapRuleTheme extends MapTheme {
           backgroundLabelVisibility: backgroundLabelVisibility,
           labelMarginBuilder: labelMarginBuilder,
           labelBuilder: labelBuilder,
+          modifiedCenter: modifiedCenter,
         );
 
   final List<ColorRule> _colorRules;
