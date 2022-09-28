@@ -290,7 +290,7 @@ class MapPainter extends CustomPainter {
     _drawText(
       index,
       canvas,
-      bounds.centerRight,
+      modifiedCenter ? bounds.centerRight : bounds.center,
       text,
       labelStyle,
       isShowBackground: isShowBackground,
