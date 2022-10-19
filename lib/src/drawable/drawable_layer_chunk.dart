@@ -19,6 +19,16 @@ class DrawableLayerChunk {
     return _drawableFeatures[index];
   }
 
+  DrawableFeature? getDrawableFeatureByCode(
+      {required String key, required String code}) {
+    for (var e in _drawableFeatures) {
+      if (e.feature.getValue(key) == code) {
+        return e;
+      }
+    }
+    return null;
+  }
+
   void add(MapFeature feature) {
     _drawableFeatures.add(DrawableFeature(feature));
     _pointsCount += feature.geometry.pointsCount;

@@ -182,6 +182,50 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     return _drawableLayers[index];
   }
 
+  void findHighlightDrawable({required String key, required String code}) {
+    MapSingleHighlight? highlightSelected;
+
+    for (int layerIndex = layersCount - 1; layerIndex >= 0; layerIndex--) {
+      final drawableLayer = getDrawableLayer(layerIndex);
+      final drawableFeature =
+          _findDrawableFeatureByCode(drawableLayer, key: key, code: code);
+
+      if (drawableFeature != null) {
+        final layer = drawableLayer.layer;
+
+        highlightSelected = MapSingleHighlight(
+          layerId: layer.id,
+          drawableFeature: drawableFeature,
+        );
+
+        break;
+      }
+    }
+
+    if (highlight != highlightSelected) {
+      if (highlightSelected != null) {
+        setHighlight(highlightSelected);
+      } else {
+        clearHighlight();
+      }
+    }
+  }
+
+  DrawableFeature? _findDrawableFeatureByCode(DrawableLayer drawableLayer,
+      {required String key, required String code}) {
+    for (DrawableLayerChunk chunk in drawableLayer.chunks) {
+      for (int index = 0; index < chunk.length; index++) {
+        final drawableFeature =
+            chunk.getDrawableFeatureByCode(key: key, code: code);
+
+        if (drawableFeature == null) continue;
+
+        return drawableFeature;
+      }
+    }
+    return null;
+  }
+
   @override
   void clearHighlight() {
     _highlight = null;
