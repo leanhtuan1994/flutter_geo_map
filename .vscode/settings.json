@@ -5,6 +5,7 @@
         "LTRB",
         "LTWH",
         "microtask",
-        "Relayout"
+        "Relayout",
+        "VARNAME"
     ]
 }
