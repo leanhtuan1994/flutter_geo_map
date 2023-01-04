@@ -1,11 +1,13 @@
 import 'dart:math';
 
+import 'package:equatable/equatable.dart';
+
 import '../theme/map_highlight_theme.dart';
 import '../theme/map_theme.dart';
 import 'map_data_source.dart';
 
-/// Layer for [VectorMap].
-class MapLayer {
+/// Layer for [SimpleMap].
+class MapLayer extends Equatable {
   MapLayer({
     required this.dataSource,
     int? id,
@@ -30,12 +32,13 @@ class MapLayer {
   }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is MapLayer && runtimeType == other.runtimeType && id == other.id;
-
-  @override
-  int get hashCode => id.hashCode;
+  List<Object?> get props => [
+        id,
+        dataSource,
+        theme,
+        name,
+        contourThickness,
+      ];
 
   /// Gets a random layer id.
   static int get _randomId {

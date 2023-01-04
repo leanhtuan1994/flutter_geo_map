@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'data/geometries.dart';
 import 'data/map_feature.dart';
 import 'error.dart';
+import 'extension/iterable_extensions.dart';
 
 enum GeometryType {
   Point,
@@ -40,25 +41,40 @@ class Keys {
 
 /// Generic GeoJSON reader.
 class _GeoJsonReaderBase {
+  /// If the key is not in the map, throw an exception
+  ///
+  /// Args:
+  ///   map (Map<String, dynamic>): The map to check the key on.
+  ///   key (String): The key to check for in the map.
   void _checkKeyOn(Map<String, dynamic> map, {required String key}) {
-    if (map.containsKey(key) == false) {
-      throw VectorMapError.keyNotFound(key);
+    if (!map.containsKey(key)) {
+      throw SimpleMapError.keyNotFound(key);
     }
   }
 
+  /// > This function takes a map of strings to dynamic objects, and returns a GeometryType object
+  ///
+  /// Args:
+  ///   map (Map<String, dynamic>): The map that contains the geometry type information.
   GeometryType _generateGeometryType(Map<String, dynamic> map) {
-    final type = GeometryType.values.firstWhere(
-      (e) => e.name == (map[Keys.TYPE] as String? ?? GeometryType.Other.name),
-    );
-    return type;
+    final typeString = map[Keys.TYPE] as String? ?? GeometryType.Other.name;
+
+    final type =
+        GeometryType.values.firstWhereOrNull((e) => e.name == typeString);
+
+    return type ?? GeometryType.Other;
   }
 
+  /// > It takes a map of strings to dynamic values, and returns a [MapType] object
+  ///
+  /// Args:
+  ///   map (Map<String, dynamic>): The map that you want to convert to a MapType object.
   MapType _generateMapType(Map<String, dynamic> map) {
-    final type = MapType.values.firstWhere(
-      (e) => e.name == (map[Keys.TYPE] as String? ?? MapType.Other.name),
-    );
+    final typeString = map[Keys.TYPE] as String? ?? MapType.Other.name;
 
-    return type;
+    final type = MapType.values.firstWhereOrNull((e) => e.name == typeString);
+
+    return type ?? MapType.Other;
   }
 
   MapGeometry _readGeometry(
@@ -70,7 +86,6 @@ class _GeoJsonReaderBase {
     final type = _generateGeometryType(map);
 
     switch (type) {
-      //TODO other geometries
       case GeometryType.Point:
         return _readPoint(map);
       case GeometryType.MultiPoint:
@@ -84,14 +99,23 @@ class _GeoJsonReaderBase {
       case GeometryType.MultiPolygon:
         return _readMultiPolygon(map);
       default:
+        //! type invalid
         if (hasParent) {
-          throw VectorMapError.invalidGeometryType(type.name);
+          throw SimpleMapError.invalidGeometryType(type.name);
         } else {
-          throw VectorMapError.invalidType(type.name);
+          throw SimpleMapError.invalidType(type.name);
         }
     }
   }
 
+  /// > Read a GeoJSON Point object and return a [MapPoint] object
+  ///
+  /// Key: [Keys.COORDINATES]
+  /// Args:
+  ///   map (Map<String, dynamic>): The map to read from.
+  ///
+  /// Returns:
+  ///   A [MapPoint] object.
   MapGeometry _readPoint(Map<String, dynamic> map) {
     _checkKeyOn(map, key: Keys.COORDINATES);
     List coordinates = map[Keys.COORDINATES];
@@ -101,10 +125,17 @@ class _GeoJsonReaderBase {
       return MapPoint(x, y);
     }
 
-    throw VectorMapError(
+    throw SimpleMapError(
         'Expected 2 coordinates but received ' + coordinates.length.toString());
   }
 
+  /// It takes a map of type `Map<String, dynamic>` and returns a `MapGeometry` object
+  ///
+  /// Args:
+  ///   map (Map<String, dynamic>): The JSON object that contains the geometry.
+  ///
+  /// Returns:
+  ///   A [MapLineString] object.
   MapGeometry _readLineString(Map<String, dynamic> map) {
     _checkKeyOn(map, key: Keys.COORDINATES);
     List coordinates = map[Keys.COORDINATES];
@@ -117,6 +148,16 @@ class _GeoJsonReaderBase {
     return MapLineString(points);
   }
 
+  /// It reads a [MapMultiLineString] from a GeoJSON object.
+  ///
+  /// Key: [Keys.COORDINATES]
+  ///
+  /// Args:
+  ///   map (Map<String, dynamic>): The map that contains the geometry.
+  ///
+  /// Returns:
+  ///   A MapMultiLineString object.
+  ///
   MapGeometry _readMultiLineString(Map<String, dynamic> map) {
     _checkKeyOn(map, key: Keys.COORDINATES);
     List coordinates = map[Keys.COORDINATES];
@@ -157,6 +198,16 @@ class _GeoJsonReaderBase {
     return MapPolygon(externalRing, internalRings);
   }
 
+  /// It reads a list of polygons, each of which is a list of rings, each of which is a list of points,
+  /// each of which is a list of two doubles
+  ///
+  /// Key: [Keys.COORDINATES]
+  /// Args:
+  ///   map (Map<String, dynamic>): The map that contains the GeoJSON data.
+  ///
+  /// Returns:
+  ///   A [MapMultiPolygon] object.
+
   MapGeometry _readMultiPolygon(Map<String, dynamic> map) {
     _checkKeyOn(map, key: Keys.COORDINATES);
     List polygons = map[Keys.COORDINATES];
@@ -187,7 +238,10 @@ class _GeoJsonReaderBase {
     return MapMultiPolygon(mapPolygons);
   }
 
-  /// Parses a dynamic coordinate to [double].
+  /// If the coordinate is a double, return it, otherwise return the coordinate as a double
+  ///
+  /// Args:
+  ///   coordinate (dynamic): The coordinate to convert to a double.
   double _toDouble(dynamic coordinate) {
     if (coordinate is double) {
       return coordinate;
@@ -195,7 +249,7 @@ class _GeoJsonReaderBase {
       return coordinate.toDouble();
     }
     // The coordinate shouldn't be a String but since it is, tries to parse.
-    return double.parse(coordinate.toString());
+    return double.tryParse(coordinate.toString()) ?? 0.0;
   }
 }
 

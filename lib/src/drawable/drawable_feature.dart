@@ -1,19 +1,16 @@
+// ignore_for_file: must_be_immutable
+
+import 'package:equatable/equatable.dart';
+
 import '../data/map_feature.dart';
 import 'drawable.dart';
 
-class DrawableFeature {
+class DrawableFeature extends Equatable {
   DrawableFeature(this.feature);
 
   final MapFeature feature;
   Drawable? drawable;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is DrawableFeature &&
-          runtimeType == other.runtimeType &&
-          feature == other.feature;
-
-  @override
-  int get hashCode => feature.hashCode;
+  List<Object?> get props => [feature];
 }

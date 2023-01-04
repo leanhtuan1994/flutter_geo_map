@@ -38,7 +38,7 @@ class MapGradientTheme extends MapTheme {
           labelMarginBuilder: labelMarginBuilder,
         ) {
     if (colors.length < 2) {
-      throw VectorMapError('At least 2 colors are required for the gradient.');
+      throw SimpleMapError('At least 2 colors are required for the gradient.');
     }
   }
 

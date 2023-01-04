@@ -1,5 +1,5 @@
 name: flutter_simple_map
-description: Vector map for Flutter. Highly customizable. Compatible with GeoJSON. Map chart. Pure Flutter.
+description: Simple map for Flutter. Highly customizable. Compatible with GeoJSON. Map chart. Pure Flutter.
 version: 0.1.0
 
 environment:
@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   meta: ^1.7.0
+  equatable: ^2.0.5
 
 dev_dependencies:
   flutter_test:

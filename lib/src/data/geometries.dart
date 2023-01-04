@@ -6,14 +6,19 @@ import 'package:flutter/rendering.dart';
 import '../simplifier.dart';
 import 'simplified_path.dart';
 
-/// Abstract map geometry.
+/// A mixin for map geometry
+/// to easy to get [Rect] bounds
+/// and pointsCount
 mixin MapGeometry {
   Rect get bounds;
 
   int get pointsCount;
 }
 
-/// Point geometry.
+/// `MapPoint` is a `Offset` with a `bounds` property
+///
+/// extents [Offset] and [MapGeometry]
+/// has 2 point dx, dy
 class MapPoint extends Offset with MapGeometry {
   MapPoint(double x, double y) : super(x, y);
 
@@ -33,7 +38,7 @@ class MapPoint extends Offset with MapGeometry {
   int get pointsCount => 1;
 }
 
-/// Line string geometry.
+/// It's a list of points that can be drawn a line on a canvas
 class MapLineString with MapGeometry {
   final UnmodifiableListView<MapPoint> points;
 

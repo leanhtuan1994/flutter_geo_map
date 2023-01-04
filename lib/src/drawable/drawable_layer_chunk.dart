@@ -31,12 +31,15 @@ class DrawableLayerChunk {
 
   void add(MapFeature feature) {
     _drawableFeatures.add(DrawableFeature(feature));
-    _pointsCount += feature.geometry.pointsCount;
+
+    final geometry = feature.geometry;
+
+    _pointsCount += geometry.pointsCount;
 
     if (_bounds == null) {
-      _bounds = feature.geometry.bounds;
+      _bounds = geometry.bounds;
     } else {
-      _bounds = _bounds!.expandToInclude(feature.geometry.bounds);
+      _bounds = _bounds!.expandToInclude(geometry.bounds);
     }
   }
 }

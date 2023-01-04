@@ -20,19 +20,22 @@ Reading the geometries only.
 The `keys` argument defines which properties must be loaded.
 The `parseToNumber` argument defines which properties will have numeric values in quotes parsed to numbers.
 The `labelKey` defines which property will be used to display its values as feature labels.
+The `filterKey` & `filterValue` defines which property key will be used to filter json match value  
 
 ```dart
   MapDataSource polygons = await MapDataSource.geoJson(
       geoJson: geoJson,
       keys: ['Seq', 'Rnd'],
       parseToNumber: ['Rnd'],
-      labelKey: 'Rnd');
+      labelKey: 'Rnd',
+      filterKet: 'Seq',
+      filterValue '01');
 ```
 
 ## Creating the Widget
 
 ```dart
-  VectorMapController _controller = VectorMapController();
+  SimpleMapController _controller = SimpleMapController();
 ```
 
 ```dart
@@ -42,7 +45,7 @@ The `labelKey` defines which property will be used to display its values as feat
 ```
 
 ```dart
-  VectorMap map = VectorMap(controller: _controller);
+  SimpleMap map = SimpleMap(controller: _controller);
 ```
 
 ## Theme
@@ -238,7 +241,7 @@ Used by addons and cursor hover to highlight layer features on the map.
 ## Contour thickness
 
 ```dart
-  VectorMapController _controller = VectorMapController(contourThickness: 3);
+  SimpleMapController _controller = SimpleMapController(contourThickness: 3);
 
 
 ```
@@ -262,7 +265,7 @@ Used by addons and cursor hover to highlight layer features on the map.
 
 ```dart
   // enabling hover only for the 'Darwin' feature
-  VectorMap map = VectorMap(
+  SimpleMap map = SimpleMap(
       controller: _controller,
       hoverRule: (feature) {
         return feature.getValue('Seq') == 4;
@@ -272,7 +275,7 @@ Used by addons and cursor hover to highlight layer features on the map.
 ## Cursor hover listener
 
 ```dart
-  VectorMap map = VectorMap(
+  SimpleMap map = SimpleMap(
       controller: _controller,
       hoverListener: (MapFeature? feature) {
         if (feature != null) {
@@ -329,7 +332,7 @@ Overlay disabled:
       theme: MapTheme(color: Colors.green, contourColor: Colors.black),
       highlightTheme: highlightTheme);
 
-  _controller = VectorMapController(layers: [layer1, layer2]);
+  _controller = SimpleMapController(layers: [layer1, layer2]);
 ```
 
 Overlay enabled:
@@ -348,5 +351,5 @@ Overlay enabled:
       highlightTheme:
           MapHighlightTheme(color: Colors.black, contourColor: Colors.black));
 
-  _controller = VectorMapController(layers: [layer1, layer2]);
+  _controller = SimpleMapController(layers: [layer1, layer2]);
 ```

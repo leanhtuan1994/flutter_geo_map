@@ -78,7 +78,7 @@ class DrawableBuilder {
         simplifier: simplifier,
       );
     }
-    throw VectorMapError(
+    throw SimpleMapError(
         'Unrecognized geometry: ' + geometry.runtimeType.toString());
   }
 

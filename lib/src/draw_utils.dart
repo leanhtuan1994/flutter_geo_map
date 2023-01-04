@@ -5,7 +5,7 @@ import 'drawable/drawable_layer_chunk.dart';
 import 'map_highlight.dart';
 import 'theme/map_theme.dart';
 
-/// Draw utils for [VectorMap].
+/// Draw utils for [SimpleMap].
 class DrawUtils {
   /// Draws the features on a given canvas.
   ///

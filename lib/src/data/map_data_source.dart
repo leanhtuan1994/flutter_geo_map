@@ -6,7 +6,7 @@ import 'geometries.dart';
 import 'map_feature.dart';
 import 'property_limits.dart';
 
-/// [VectorMap] data source.
+/// [SimpleMap] data source.
 class MapDataSource {
   MapDataSource._({
     required this.features,
@@ -41,8 +41,12 @@ class MapDataSource {
             boundsFromGeometry.expandToInclude(geometry.bounds);
       }
 
-      if (feature.properties != null) {
-        for (final entry in feature.properties!.entries) {
+      final properties = feature.properties;
+
+      if (properties != null) {
+        final entries = properties.entries;
+
+        for (final entry in entries) {
           final value = entry.value;
           double? doubleValue;
 

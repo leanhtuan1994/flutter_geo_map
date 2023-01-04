@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'addon/map_addon.dart';
 import 'data/map_feature.dart';
 import 'drawable/drawable_feature.dart';
 import 'drawable/drawable_layer.dart';
@@ -19,7 +18,6 @@ class SimpleMap extends StatefulWidget {
     this.highlightRule,
     this.onHighlightChanged,
     this.onFeaturePress,
-    this.addons,
     this.placeHolder,
     this.borderColor = Colors.black54,
     this.borderThickness = 0,
@@ -45,9 +43,6 @@ class SimpleMap extends StatefulWidget {
 
   /// Callback any feature pressed
   final FeaturePressListener? onFeaturePress;
-
-  /// Addons
-  final List<MapAddon>? addons;
 
   final EdgeInsetsGeometry layersPadding;
 
@@ -100,15 +95,7 @@ class _SimpleMapState extends State<SimpleMap> {
     Widget? content;
     if (_controller.hasLayer) {
       final mapCanvas = _buildMapCanvas();
-      if (widget.addons != null) {
-        final children = _buildMapWithAddons(map: mapCanvas);
-        content = CustomMultiChildLayout(
-          children: children,
-          delegate: _VectorMapLayoutDelegate(children.length),
-        );
-      } else {
-        content = mapCanvas;
-      }
+      content = mapCanvas;
     } else if (widget.placeHolder != null) {
       content = widget.placeHolder;
     }
@@ -121,42 +108,16 @@ class _SimpleMapState extends State<SimpleMap> {
         ? BoxDecoration(color: widget.color, border: border)
         : null;
 
-    return Container(decoration: decoration, child: content);
+    return Container(
+      decoration: decoration,
+      child: content,
+    );
   }
 
   void _rebuild() {
     setState(() {
       // rebuild
     });
-  }
-
-  List<LayoutId> _buildMapWithAddons({required Widget map}) {
-    List<LayoutId> children = [LayoutId(id: 0, child: map)];
-    int count = 1;
-
-    for (MapAddon addon in widget.addons!) {
-      DrawableFeature? highlight;
-
-      if (_controller.highlight != null &&
-          _controller.highlight is MapSingleHighlight) {
-        highlight =
-            (_controller.highlight as MapSingleHighlight).drawableFeature;
-      }
-      children.add(
-        LayoutId(
-          id: count,
-          child: addon.buildWidget(
-            context: context,
-            mapApi: _controller,
-            highlight: highlight?.feature,
-          ),
-        ),
-      );
-
-      count++;
-    }
-
-    return children;
   }
 
   /// Builds the canvas area
@@ -322,38 +283,6 @@ class _SimpleMapState extends State<SimpleMap> {
       offset,
     );
   }
-}
-
-/// The [SimpleMap] layout.
-class _VectorMapLayoutDelegate extends MultiChildLayoutDelegate {
-  _VectorMapLayoutDelegate(this.count);
-
-  final int count;
-
-  @override
-  void performLayout(Size size) {
-    Size childSize = Size.zero;
-    for (int id = 0; id < count; id++) {
-      if (hasChild(id)) {
-        if (id == 0) {
-          childSize = layoutChild(id, BoxConstraints.tight(size));
-          positionChild(id, Offset.zero);
-        } else {
-          childSize = layoutChild(id, BoxConstraints.loose(size));
-          positionChild(
-            id,
-            Offset(
-              size.width - childSize.width,
-              size.height - childSize.height,
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRelayout(covariant MultiChildLayoutDelegate oldDelegate) => false;
 }
 
 typedef FeaturePressListener = void Function(MapFeature feature);

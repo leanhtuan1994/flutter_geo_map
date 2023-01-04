@@ -69,7 +69,7 @@ class CircleMakerBuilder {
       required double minRadius,
       required double maxRadius}) {
     if (maxRadius <= minRadius) {
-      throw VectorMapError('maxRadius must be bigger than minRadius');
+      throw SimpleMapError('maxRadius must be bigger than minRadius');
     }
     return _Proportion(key: key, minRadius: minRadius, maxRadius: maxRadius);
   }

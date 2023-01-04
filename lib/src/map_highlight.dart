@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 import 'data/map_feature.dart';
 import 'drawable/drawable_feature.dart';
 
@@ -10,20 +12,10 @@ abstract class MapHighlight {
 
   /// Identifies whether the rule applies to a given [MapFeature].
   bool applies(MapFeature feature);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is MapHighlight &&
-          runtimeType == other.runtimeType &&
-          layerId == other.layerId;
-
-  @override
-  int get hashCode => layerId.hashCode;
 }
 
 /// Defines a single [MapFeature] to be highlighted.
-class MapSingleHighlight extends MapHighlight {
+class MapSingleHighlight extends MapHighlight with EquatableMixin {
   MapSingleHighlight({
     required int layerId,
     this.drawableFeature,
@@ -46,10 +38,16 @@ class MapSingleHighlight extends MapHighlight {
 
   @override
   int get hashCode => super.hashCode ^ drawableFeature.hashCode;
+
+  @override
+  List<Object?> get props => [
+        layerId,
+        drawableFeature,
+      ];
 }
 
 /// Rule to find out which [MapFeature] should be highlighted.
-class MapGradientHighlight extends MapHighlight {
+class MapGradientHighlight extends MapHighlight with EquatableMixin {
   /// Builds a [MapHighlight]
   ///
   /// The [rangePerPixel] is the range of value represented by each legend
@@ -79,13 +77,13 @@ class MapGradientHighlight extends MapHighlight {
   }
 
   /// Builds a [MapGradientHighlight]
-  MapGradientHighlight._(
-      {required int layerId,
-      required this.key,
-      required this.value,
-      required this.rangePerPixel,
-      required this.comparator})
-      : super(layerId: layerId);
+  MapGradientHighlight._({
+    required int layerId,
+    required this.key,
+    required this.value,
+    required this.rangePerPixel,
+    required this.comparator,
+  }) : super(layerId: layerId);
 
   final String key;
   final double value;
@@ -134,21 +132,10 @@ class MapGradientHighlight extends MapHighlight {
   }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      super == other &&
-          other is MapGradientHighlight &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          value == other.value &&
-          rangePerPixel == other.rangePerPixel &&
-          comparator == other.comparator;
-
-  @override
-  int get hashCode =>
-      super.hashCode ^
-      key.hashCode ^
-      value.hashCode ^
-      rangePerPixel.hashCode ^
-      comparator.hashCode;
+  List<Object?> get props => [
+        key,
+        value,
+        rangePerPixel,
+        comparator,
+      ];
 }

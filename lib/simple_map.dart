@@ -1,8 +1,5 @@
 library vector_map;
 
-export 'src/addon/legend/gradient_legend.dart';
-export 'src/addon/legend/legend.dart';
-export 'src/addon/map_addon.dart';
 export 'src/data/geometries.dart';
 export 'src/data/map_data_source.dart';
 export 'src/data/map_feature.dart';
@@ -23,12 +20,12 @@ export 'src/drawable/marker.dart';
 export 'src/error.dart';
 export 'src/map_highlight.dart';
 export 'src/simple_map.dart';
+export 'src/simple_map_api.dart';
 export 'src/simple_map_controller.dart';
+export 'src/simple_map_mode.dart';
 export 'src/simplifier.dart';
 export 'src/theme/map_gradient_theme.dart';
 export 'src/theme/map_highlight_theme.dart';
 export 'src/theme/map_rule_theme.dart';
 export 'src/theme/map_theme.dart';
 export 'src/theme/map_value_theme.dart';
-export 'src/vector_map_api.dart';
-export 'src/vector_map_mode.dart';

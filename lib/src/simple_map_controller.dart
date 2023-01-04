@@ -117,7 +117,7 @@ class SimpleMapController extends ChangeNotifier implements SimpleMapApi {
 
   void _addLayer(MapLayer layer) {
     if (_layerIdAndLayer.containsKey(layer.id)) {
-      throw VectorMapError('Duplicated layer id: ' + layer.id.toString());
+      throw SimpleMapError('Duplicated layer id: ' + layer.id.toString());
     }
 
     _layerIdAndLayer[layer.id] = layer;
@@ -153,14 +153,14 @@ class SimpleMapController extends ChangeNotifier implements SimpleMapApi {
       return _drawableLayers[index].layer;
     }
 
-    throw VectorMapError('Invalid layer index: $index');
+    throw SimpleMapError('Invalid layer index: $index');
   }
 
   /// Gets a layer given an id.
   MapLayer getLayerById(int id) {
     final layer = _layerIdAndLayer[id];
     if (layer == null) {
-      throw VectorMapError('Invalid layer id: $id');
+      throw SimpleMapError('Invalid layer id: $id');
     }
     return layer;
   }

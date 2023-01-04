@@ -1,9 +1,11 @@
 import 'dart:collection';
 
+import 'package:equatable/equatable.dart';
+
 import 'geometries.dart';
 
 /// A representation of a real-world object on a map.
-class MapFeature {
+class MapFeature extends Equatable {
   MapFeature({
     required this.id,
     required this.geometry,
@@ -17,9 +19,10 @@ class MapFeature {
   final MapGeometry geometry;
 
   dynamic getValue(String key) {
-    if (properties != null && properties!.containsKey(key)) {
+    if (properties?.containsKey(key) ?? false) {
       return properties![key];
     }
+
     return null;
   }
 
@@ -36,10 +39,10 @@ class MapFeature {
   }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is MapFeature && runtimeType == other.runtimeType && id == other.id;
-
-  @override
-  int get hashCode => id.hashCode;
+  List<Object?> get props => [
+        id,
+        geometry,
+        properties,
+        label,
+      ];
 }
