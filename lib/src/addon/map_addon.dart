@@ -22,7 +22,7 @@ abstract class MapAddon {
   /// Builds the [Widget] for this addon
   Widget buildWidget({
     required BuildContext context,
-    required VectorMapApi mapApi,
+    required SimpleMapApi mapApi,
     MapFeature? highlight,
   });
 }

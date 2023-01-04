@@ -2,7 +2,7 @@ import 'map_highlight.dart';
 
 /// Defines the map API.
 /// Through this class, plugins and addons will be able to automate the map.
-abstract class VectorMapApi {
+abstract class SimpleMapApi {
   /// Removes the current highlight.
   void clearHighlight();
 

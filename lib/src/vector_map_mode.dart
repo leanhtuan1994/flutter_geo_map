@@ -1,9 +1,9 @@
 /// Indicates in which interaction mode the map is working.
-enum VectorMapMode {
+enum SimpleMapMode {
   autoFit,
   panAndZoom;
 
-  bool get isAutoFit => this == VectorMapMode.autoFit;
+  bool get isAutoFit => this == SimpleMapMode.autoFit;
 
-  bool get isPanAndZoom => this == VectorMapMode.panAndZoom;
+  bool get isPanAndZoom => this == SimpleMapMode.panAndZoom;
 }

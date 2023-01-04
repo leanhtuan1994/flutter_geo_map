@@ -47,7 +47,7 @@ class GradientLegend extends Legend {
   @override
   Widget buildWidget(
       {required BuildContext context,
-      required VectorMapApi mapApi,
+      required SimpleMapApi mapApi,
       MapFeature? highlight}) {
     return _GradientLegendWidget(legend: this, mapApi: mapApi);
   }
@@ -78,7 +78,7 @@ class _GradientLegendWidget extends StatefulWidget {
   const _GradientLegendWidget({required this.legend, required this.mapApi});
 
   final GradientLegend legend;
-  final VectorMapApi mapApi;
+  final SimpleMapApi mapApi;
 
   @override
   State<StatefulWidget> createState() => _GradientLegendState();
@@ -178,7 +178,7 @@ class _GradientBar extends StatelessWidget {
   final List<Color> colors;
   final ValuePositionUpdater valuePositionUpdater;
   final BoxBorder? border;
-  final VectorMapApi mapApi;
+  final SimpleMapApi mapApi;
 
   @override
   Widget build(BuildContext context) {

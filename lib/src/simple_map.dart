@@ -5,15 +5,14 @@ import 'data/map_feature.dart';
 import 'drawable/drawable_feature.dart';
 import 'drawable/drawable_layer.dart';
 import 'drawable/drawable_layer_chunk.dart';
-import 'low_quality_mode.dart';
 import 'map_highlight.dart';
 import 'map_painter.dart';
 import 'pan_zoom.dart';
-import 'vector_map_controller.dart';
+import 'simple_map_controller.dart';
 
 /// Vector map widget.
-class VectorMap extends StatefulWidget {
-  const VectorMap({
+class SimpleMap extends StatefulWidget {
+  const SimpleMap({
     Key? key,
     this.controller,
     this.color,
@@ -22,7 +21,6 @@ class VectorMap extends StatefulWidget {
     this.onFeaturePress,
     this.addons,
     this.placeHolder,
-    this.lowQualityMode,
     this.borderColor = Colors.black54,
     this.borderThickness = 0,
     this.layersPadding = EdgeInsets.zero,
@@ -30,7 +28,7 @@ class VectorMap extends StatefulWidget {
 
   /// The Controller
   ///
-  final VectorMapController? controller;
+  final SimpleMapController? controller;
 
   /// Background color
   ///
@@ -51,9 +49,6 @@ class VectorMap extends StatefulWidget {
   /// Addons
   final List<MapAddon>? addons;
 
-  /// Handle low quality for some case improve performance
-  final LowQualityMode? lowQualityMode;
-
   final EdgeInsetsGeometry layersPadding;
 
   /// Border color for parent layers map widget
@@ -63,12 +58,12 @@ class VectorMap extends StatefulWidget {
   final double borderThickness;
 
   @override
-  State<StatefulWidget> createState() => _VectorMapState();
+  State<StatefulWidget> createState() => _SimpleMapState();
 }
 
-/// [VectorMap] state.
-class _VectorMapState extends State<VectorMap> {
-  late VectorMapController _controller;
+/// [SimpleMap] state.
+class _SimpleMapState extends State<SimpleMap> {
+  late SimpleMapController _controller;
 
   PanZoom? _panZoom;
 
@@ -78,13 +73,13 @@ class _VectorMapState extends State<VectorMap> {
   void initState() {
     super.initState();
 
-    _controller = widget.controller ?? VectorMapController();
+    _controller = widget.controller ?? SimpleMapController();
 
     _controller.addListener(_rebuild);
   }
 
   @override
-  void didUpdateWidget(covariant VectorMap oldWidget) {
+  void didUpdateWidget(covariant SimpleMap oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != null &&
         widget.controller != oldWidget.controller) {
@@ -329,7 +324,7 @@ class _VectorMapState extends State<VectorMap> {
   }
 }
 
-/// The [VectorMap] layout.
+/// The [SimpleMap] layout.
 class _VectorMapLayoutDelegate extends MultiChildLayoutDelegate {
   _VectorMapLayoutDelegate(this.count);
 

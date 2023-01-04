@@ -1,6 +1,6 @@
 import 'package:example/after_layout.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_geo_map/vector_map.dart';
+import 'package:flutter_simple_map/simple_map.dart';
 
 import 'utils/assets.dart';
 
@@ -14,12 +14,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with AfterLayoutMixin {
-  late VectorMapController _controller;
+  late SimpleMapController _controller;
 
   @override
   void initState() {
-    _controller = VectorMapController(
-      mode: VectorMapMode.panAndZoom,
+    _controller = SimpleMapController(
+      mode: SimpleMapMode.panAndZoom,
       contourThickness: 1,
       barrierDismissibleHighlight: false,
       delayToRefreshResolution: 500,
@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> with AfterLayoutMixin {
       backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: VectorMap(
+        child: SimpleMap(
           controller: _controller,
           layersPadding: EdgeInsets.zero,
           onFeaturePress: (feature) {},

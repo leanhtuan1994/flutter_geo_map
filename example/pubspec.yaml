@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_geo_map:
+  flutter_simple_map:
     path: ../
 
 

@@ -5,15 +5,15 @@ import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
-import '../vector_map.dart';
+import '../simple_map.dart';
 import 'draw_utils.dart';
 
-class VectorMapController extends ChangeNotifier implements VectorMapApi {
-  VectorMapController({
+class SimpleMapController extends ChangeNotifier implements SimpleMapApi {
+  SimpleMapController({
     List<MapLayer>? layers,
     this.contourThickness = 1,
     this.delayToRefreshResolution = 1000,
-    VectorMapMode mode = VectorMapMode.autoFit,
+    SimpleMapMode mode = SimpleMapMode.autoFit,
     this.maxScale = 30000,
     this.minScale = 0.1,
     this.barrierDismissibleHighlight = true,
@@ -28,9 +28,9 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
     }
   }
 
-  VectorMapMode _mode;
-  VectorMapMode get mode => _mode;
-  set mode(VectorMapMode mode) {
+  SimpleMapMode _mode;
+  SimpleMapMode get mode => _mode;
+  set mode(SimpleMapMode mode) {
     if (_mode != mode) {
       _mode = mode;
       if (mode.isAutoFit) {
@@ -79,11 +79,11 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   double get translateY => _translateY;
 
   /// Matrix to be used to convert world coordinates to canvas coordinates.
-  Matrix4 _worldToCanvas = VectorMapController._buildMatrix4;
+  Matrix4 _worldToCanvas = SimpleMapController._buildMatrix4;
   Matrix4 get worldToCanvas => _worldToCanvas;
 
   /// Matrix to be used to convert canvas coordinates to world coordinates.
-  Matrix4 _canvasToWorld = VectorMapController._buildMatrix4;
+  Matrix4 _canvasToWorld = SimpleMapController._buildMatrix4;
   Matrix4 get canvasToWorld => _canvasToWorld;
 
   MapHighlight? _highlight;
@@ -268,7 +268,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
       _rebuildSimplifiedGeometry = _lastCanvasSize != canvasSize;
       bool first = _lastCanvasSize == null;
       bool needFit = (first ||
-          (_mode == VectorMapMode.autoFit && _rebuildSimplifiedGeometry));
+          (_mode == SimpleMapMode.autoFit && _rebuildSimplifiedGeometry));
       _lastCanvasSize = canvasSize;
       if (needFit) {
         _fit(canvasSize);
@@ -414,7 +414,7 @@ class VectorMapController extends ChangeNotifier implements VectorMapApi {
   /// It builds a 4x4 matrix from a 3x3 matrix
   ///
   void _buildMatrices4() {
-    _worldToCanvas = VectorMapController._buildMatrix4;
+    _worldToCanvas = SimpleMapController._buildMatrix4;
     _worldToCanvas.translate(_translateX, _translateY, 0);
     _worldToCanvas.scale(_scale, -_scale, 1);
 

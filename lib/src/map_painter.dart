@@ -1,6 +1,7 @@
 // ignore_for_file: constant_identifier_names
 
 import 'package:flutter/material.dart';
+
 import 'data/map_feature.dart';
 import 'data/map_layer.dart';
 import 'draw_utils.dart';
@@ -9,8 +10,8 @@ import 'drawable/drawable_feature.dart';
 import 'drawable/drawable_layer.dart';
 import 'drawable/drawable_layer_chunk.dart';
 import 'map_highlight.dart';
+import 'simple_map_controller.dart';
 import 'theme/map_theme.dart';
-import 'vector_map_controller.dart';
 
 const double MARKER_WIDTH = 20.0;
 
@@ -18,7 +19,7 @@ const double MARKER_WIDTH = 20.0;
 class MapPainter extends CustomPainter {
   const MapPainter({required this.controller});
 
-  final VectorMapController controller;
+  final SimpleMapController controller;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -227,7 +228,7 @@ class MapPainter extends CustomPainter {
   void _drawHighlightContour(
     Canvas canvas,
     DrawableLayer drawableLayer,
-    VectorMapController controller,
+    SimpleMapController controller,
   ) {
     final highlight = controller.highlight;
 
