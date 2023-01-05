@@ -1,6 +1,6 @@
 import 'package:example/after_layout.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_simple_map/simple_map.dart';
+import 'package:flutter_simple_map/flutter_simple_map.dart';
 
 import 'utils/assets.dart';
 

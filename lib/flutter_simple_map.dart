@@ -1,4 +1,4 @@
-library vector_map;
+library flutter_simple_map;
 
 export 'src/data/geometries.dart';
 export 'src/data/map_data_source.dart';

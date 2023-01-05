@@ -5,7 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
-import '../simple_map.dart';
+import '../flutter_simple_map.dart';
 import 'draw_utils.dart';
 
 class SimpleMapController extends ChangeNotifier implements SimpleMapApi {
