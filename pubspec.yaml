@@ -1,6 +1,7 @@
 name: flutter_simple_map
-description: Simple map for Flutter. Highly customizable. Compatible with GeoJSON. Map chart. Pure Flutter.
+description: Create beautiful maps in flutter with GeoJson using a declarative api, highly customizable, pure Flutter.
 version: 0.1.0
+repository: https://github.com/leanhtuan1994/flutter_geo_map
 
 environment:
   sdk: ">=2.17.0 <3.0.0"

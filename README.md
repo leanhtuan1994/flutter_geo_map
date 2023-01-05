@@ -7,6 +7,40 @@
 * Interactable
 * Pure Flutter (no WebView/JavaScript)
 
+## GeoJson
+
+GeoJSON is a JSON-based open standard format designed to represent geographical features, alongside non-spatial attributes (properties). Geographic shapes would usually be represented as `features` in geojson. Each feature has a `type`, `geometry`, and `properties` attribute. `properties` is an object that can contain any kind of data that can be represented in JSON format. This can be time-series population data, GDP, or any other kind of data that relates to a given geography.
+
+```json
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [10.6, 47.9],
+            [5.8, 47.9],
+            [5.8, 45.8],
+            [10.6, 45.8],
+            [10.6, 47.9]
+          ]
+        ]
+      },
+      "properties": {
+        "firstProperty": "Something",
+        "secondProperty": "Something else"
+      }
+    },
+    { "type": "Feature", "geometry": {...}, "properties": {...} },
+    { "type": "Feature", "geometry": {...}, "properties": {...} }
+  ]
+}
+
+```
+
 ## Reading GeoJSON from String
 
 Reading the geometries only.
